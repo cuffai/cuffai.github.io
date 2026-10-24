@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src https://api.anthropic.com https://api.openai.com; manifest-src 'self'">
+<title>Cuff AI Web</title>
+<link rel="icon" href="../icon-192.png">
+<style>
+:root{
+  --bg:#F2F3F6; --surface:#FFFFFF; --hair:rgba(20,24,33,.09); --ink:#121620; --ink2:#4B5363; --ink3:#868E9C;
+  --fill:rgba(20,24,33,.05); --fill2:rgba(20,24,33,.09);
+  --l0:#8E97A8; --l1:#16A6B8; --l2:#2EB872; --l5:#FA6A2A;
+  --accent:var(--l2); --red:#E5293D; --green:#1E9E5A; --redbg:rgba(229,41,61,.10); --greenbg:rgba(30,158,90,.11);
+  --addbg:rgba(30,158,90,.12); --delbg:rgba(229,41,61,.10);
+  --shadow:0 1px 2px rgba(16,20,30,.06),0 8px 26px rgba(16,20,30,.07); --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D0F13; --surface:#191C23; --hair:rgba(255,255,255,.08); --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A;
+  --fill:rgba(255,255,255,.05); --fill2:rgba(255,255,255,.1); --l0:#6E7789; --red:#FF4D5E; --green:#3DD68C;
+  --redbg:rgba(255,77,94,.14); --greenbg:rgba(61,214,140,.13); --addbg:rgba(61,214,140,.14); --delbg:rgba(255,77,94,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.32);
+}}
+:root[data-theme="dark"]{
+  --bg:#0D0F13; --surface:#191C23; --hair:rgba(255,255,255,.08); --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A;
+  --fill:rgba(255,255,255,.05); --fill2:rgba(255,255,255,.1); --l0:#6E7789; --red:#FF4D5E; --green:#3DD68C;
+  --redbg:rgba(255,77,94,.14); --greenbg:rgba(61,214,140,.13); --addbg:rgba(61,214,140,.14); --delbg:rgba(255,77,94,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:15px;line-height:1.5;letter-spacing:-.008em;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:340px minmax(0,1fr);grid-template-rows:auto 1fr;height:100vh;height:100dvh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--hair);background:var(--surface)}
+.mark{width:26px;height:26px;border-radius:8px;flex:none;background:conic-gradient(from 225deg,#16A6B8,#2EB872,#9FBF1F,#F2A516,#FA6A2A,#F2364A,#16A6B8);
+  box-shadow:inset 0 0 0 6px var(--surface),0 1px 3px rgba(0,0,0,.15)}
+.brand{font-weight:700;letter-spacing:-.02em;font-size:16px;text-decoration:none;white-space:nowrap}
+.onlymobile{display:none}
+.tag{font-size:12px;font-weight:650;color:var(--ink3);background:var(--fill);padding:2px 8px;border-radius:999px}
+header .sp{flex:1}
+.hbtn{height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--hair);background:var(--surface);font-weight:550;font-size:14px}
+
+aside{border-right:1px solid var(--hair);overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+.panel{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+.panel h2{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin:0 0 10px}
+.dial{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--fill);padding:4px;border-radius:14px}
+.dial button{border:0;background:none;border-radius:10px;padding:8px 2px;font-size:12.5px;font-weight:650;color:var(--ink2);line-height:1.2;position:relative}
+.dial button b{display:block;font-size:17px;color:var(--ink3)}
+.dial button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.dial button.on b{color:var(--c)}
+.dialdesc{font-size:13.5px;color:var(--ink2);margin:10px 2px 0;min-height:40px}
+.stop{width:100%;height:42px;margin-top:12px;border:0;border-radius:12px;background:var(--red);color:#fff;font-weight:700}
+.stop:disabled{opacity:.4}
+.folder{display:flex;align-items:center;gap:10px}
+.folder .fi{width:36px;height:36px;border-radius:10px;background:var(--fill);display:grid;place-items:center;flex:none;color:var(--ink2)}
+.folder b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.folder span{font-size:12.5px;color:var(--ink3)}
+.btn{height:36px;padding:0 14px;border-radius:10px;border:0;background:var(--fill2);font-weight:600;font-size:14px}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.go{background:var(--green);color:#fff}
+.btn.no{background:var(--redbg);color:var(--red)}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lbl{font-size:12.5px;font-weight:650;color:var(--ink2);display:block;margin:10px 0 5px}
+.inp{width:100%;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--hair);background:var(--fill)}
+.inp:focus{outline:none;border-color:var(--l1)}
+.note{font-size:12.5px;color:var(--ink3);margin:8px 0 0}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);margin-top:8px}
+.review h2{display:flex;align-items:center;gap:8px}
+.badge{background:var(--red);color:#fff;border-radius:999px;font-size:11px;padding:0 7px;letter-spacing:0}
+.chg{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--hair);font-size:13.5px}
+.chg:first-of-type{border-top:0}
+.chg .k{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none;background:var(--fill)}
+.chg .k.a{background:var(--greenbg);color:var(--green)}
+.chg .k.d{background:var(--redbg);color:var(--red)}
+.chg .p{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:12.5px}
+.chg button{border:0;background:none;color:var(--l1);font-weight:600;font-size:13px}
+.empty{color:var(--ink3);font-size:13.5px;margin:0}
+
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.chat{flex:1;overflow:auto;padding:24px clamp(16px,5vw,64px)}
+.msg{max-width:780px;margin:0 auto 18px}
+.msg.user .bubble{background:var(--ink);color:var(--bg);margin-left:auto;width:fit-content;max-width:85%;border-radius:18px 18px 4px 18px;padding:10px 14px;white-space:pre-wrap}
+.msg.ai .bubble{white-space:pre-wrap;word-wrap:break-word}
+.msg.ai .bubble code{font-family:var(--mono);font-size:13px;background:var(--fill2);padding:1px 5px;border-radius:5px}
+.msg.ai .bubble pre{font-family:var(--mono);font-size:12.5px;background:var(--fill);padding:12px;border-radius:12px;overflow:auto;white-space:pre}
+.step{max-width:780px;margin:0 auto 8px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink3)}
+.step i{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.step.blocked i{background:var(--red)}
+.step code{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.err{max-width:780px;margin:0 auto 14px;background:var(--redbg);color:var(--red);padding:10px 14px;border-radius:12px;font-size:14px}
+.thinking{max-width:780px;margin:0 auto 14px;color:var(--ink3);font-size:14px;display:flex;gap:8px;align-items:center}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--fill2);border-top-color:var(--accent);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.welcome{max-width:640px;margin:8vh auto 0;text-align:center}
+.welcome .mark{width:56px;height:56px;border-radius:16px;margin:0 auto 18px;box-shadow:inset 0 0 0 13px var(--bg),0 2px 8px rgba(0,0,0,.15)}
+.welcome h1{font-size:32px;letter-spacing:-.035em;margin:0 0 8px;line-height:1.15}
+.welcome p{color:var(--ink2);margin:0 auto 6px;max-width:48ch}
+.steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px;text-align:left}
+.steps3 div{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+.steps3 b{display:block;font-size:14px;margin-bottom:2px}
+.steps3 span{font-size:13px;color:var(--ink2)}
+.steps3 div.done{outline:2px solid var(--green)}
+.composer{border-top:1px solid var(--hair);padding:14px clamp(16px,5vw,64px) max(14px,env(safe-area-inset-bottom));background:var(--surface)}
+.composer form{max-width:780px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
+.composer textarea{flex:1;resize:none;min-height:46px;max-height:200px;padding:12px 14px;border-radius:14px;border:1px solid var(--hair);background:var(--fill)}
+.composer textarea:focus{outline:none;border-color:var(--l1)}
+.send{height:46px;padding:0 18px;border-radius:14px;border:0;background:var(--ink);color:var(--bg);font-weight:650}
+.send:disabled{opacity:.4}
+.hintline{max-width:780px;margin:6px auto 0;font-size:12px;color:var(--ink3)}
+
+dialog{border:1px solid var(--hair);border-radius:22px;padding:22px;width:min(860px,calc(100vw - 24px));max-height:88vh;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(8,10,14,.45);backdrop-filter:blur(5px)}
+dialog h3{margin:0 0 4px;font-size:18px;font-family:var(--mono);word-break:break-all}
+.diff{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--fill);border-radius:12px;overflow:auto;max-height:60vh;margin-top:12px;padding:8px 0}
+.diff div{padding:0 12px;white-space:pre}
+.diff .a{background:var(--addbg)}
+.diff .d{background:var(--delbg)}
+.diff .gap{color:var(--ink3);padding:4px 12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,160%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:550;font-size:14px;transition:transform .3s cubic-bezier(.2,.9,.3,1);z-index:9;max-width:calc(100vw - 32px)}
+.toast.show{transform:translate(-50%,0)}
+.toast.err{background:var(--red);color:#fff}
+.mobilebar{display:none}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+  aside{border-right:0;border-bottom:1px solid var(--hair);max-height:none;display:none}
+  .app.side aside{display:flex}
+  .app.side main{display:none}
+  .mobilebar{display:inline-flex}
+  .getapp{display:none!important}
+  .onlymobile{display:inline}
+  header{padding:10px 14px}
+  .steps3{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="mark"></div><a class="brand" href="../">Cuff AI</a><span class="tag">Web</span><span class="sp"></span>
+    <button class="hbtn mobilebar" id="toggle">Controls</button>
+    <a class="hbtn getapp" href="../#download" style="display:inline-flex;align-items:center;text-decoration:none">Get the app</a>
+  </header>
+
+  <aside>
+    <section class="panel">
+      <h2>Access</h2>
+      <div class="dial" id="dial" role="radiogroup" aria-label="Access level"></div>
+      <p class="dialdesc" id="dialdesc"></p>
+      <button class="stop" id="stop" disabled>Stop</button>
+    </section>
+
+    <section class="panel">
+      <h2>Folder</h2>
+      <div class="folder"><div class="fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+        <div style="min-width:0"><b id="fname">No folder yet</b><span id="fmeta">The AI only sees the folder you choose.</span></div></div>
+      <div class="row"><button class="btn primary" id="pick">Choose folder…</button><button class="btn" id="download" hidden>Download files</button></div>
+      <input type="file" id="upload" webkitdirectory multiple hidden>
+      <p class="note" id="fnote"></p>
+    </section>
+
+    <section class="panel review">
+      <h2>Needs your review <span class="badge" id="nrev" hidden></span></h2>
+      <div id="changes"><p class="empty">Nothing waiting.</p></div>
+      <div class="row" id="revbtns" hidden><button class="btn no" id="discard">Discard</button><button class="btn go" id="apply">Apply all</button></div>
+    </section>
+
+    <section class="panel">
+      <h2>Restore points</h2>
+      <div id="snaps"><p class="empty">Saved before any real file changes.</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>Your AI</h2>
+      <label class="lbl" for="prov">Service</label>
+      <select class="inp" id="prov"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI</option></select>
+      <label class="lbl" for="model">Model</label>
+      <input class="inp" id="model" list="models" autocomplete="off" spellcheck="false">
+      <datalist id="models"></datalist>
+      <label class="lbl" for="key">API key</label>
+      <input class="inp" id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
+      <label class="chk"><input type="checkbox" id="remember"> Remember on this device</label>
+      <p class="note">Your key goes straight from this page to the AI service. Cuff has no server, and usage is billed to your account. <a id="keylink" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></p>
+    </section>
+  </aside>
+
+  <main>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="composer">
+      <form id="form"><textarea id="input" rows="1" placeholder="Ask your AI to do something in this folder…" aria-label="Message"></textarea><button class="send" id="send">Send</button></form>
+      <p class="hintline" id="hintline"></p>
+    </div>
+  </main>
+</div>
+
+<dialog id="diffdlg"><h3 id="difftitle"></h3><p class="note" id="diffmeta"></p><div class="diff" id="diffbody"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn no" id="dno">Discard this file</button><button class="btn" id="dclose">Close</button><button class="btn go" id="dyes">Apply this file</button></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
+function toast(m, bad) { const t = $("toast"); t.textContent = m; t.className = "toast show" + (bad ? " err" : ""); clearTimeout(toast.h); toast.h = setTimeout(() => t.className = "toast", 3000); }
+
+/* ---------- the dial (the parts that make sense in a browser) ---------- */
+const LEVELS = [
+  {n: 0, name: "Off", short: "Off", c: "var(--l0)", desc: "The AI can only talk. It can't see your folder."},
+  {n: 1, name: "Look only", short: "Look", c: "var(--l1)", desc: "It can read the folder you chose. It can't change anything."},
+  {n: 2, name: "Suggest edits", short: "Suggest", c: "var(--l2)", desc: "It edits a copy. Nothing real changes until you approve it."},
+  {n: 5, name: "Make changes", short: "Change", c: "var(--l5)", desc: "It changes your files directly. A restore point is saved first, so you can undo."},
+];
+let level = +(store.get("cuffweb.level") ?? 2); if (!LEVELS.some(l => l.n === level)) level = 2;
+function drawDial() {
+  $("dial").innerHTML = LEVELS.map(l => `<button role="radio" aria-checked="${l.n === level}" class="${l.n === level ? "on" : ""}" style="--c:${l.c}" data-n="${l.n}"><b>${l.n}</b>${l.short}</button>`).join("");
+  $("dial").querySelectorAll("button").forEach(b => b.onclick = () => setLevel(+b.dataset.n));
+  const L = LEVELS.find(l => l.n === level);
+  $("dialdesc").textContent = L.desc;
+  document.documentElement.style.setProperty("--accent", L.c);
+  hint();
+}
+function setLevel(n) {
+  if (n === 5 && level !== 5 && !confirm("Let the AI change your real files?\n\nA restore point is saved before every change, so you can undo.")) return;
+  if (n < level && BUSY) stopRun("Access lowered");
+  level = n; store.set("cuffweb.level", String(n)); drawDial(); log(`Access set to ${n} (${LEVELS.find(l => l.n === n).name})`);
+}
+
+/* ---------- folders: a real one (Chrome, Edge) or an uploaded copy (any browser) ---------- */
+const SKIP_DIRS = new Set([".git", "node_modules", ".venv", "venv", "__pycache__", "target", "dist", "build", ".next", ".cache", ".pytest_cache"]);
+const SECRET = [/^\.env(\..*)?$/i, /^id_(rsa|ed25519|ecdsa|dsa)(\.pub)?$/i, /\.(pem|p12|pfx|key|keystore|jks)$/i, /^\.git-credentials$/, /^\.netrc$/, /^\.npmrc$/, /^\.pypirc$/, /^credentials(\.json)?$/i];
+const SECRET_DIRS = new Set([".ssh", ".aws", ".gnupg", ".azure", ".kube", ".docker"]);
+const MAX_READ = 400_000, MAX_FILES = 4000;
+function hiddenPath(p) {
+  const parts = p.split("/");
+  if (parts.some(x => SKIP_DIRS.has(x) || SECRET_DIRS.has(x) || x === ".DS_Store")) return true;
+  return SECRET.some(r => r.test(parts[parts.length - 1]));
+}
+function cleanPath(p) {
+  p = String(p ?? "").replace(/\\/g, "/").replace(/^\.\/+/, "").replace(/\/+$/, "").trim();
+  if (p === "." ) p = "";
+  const parts = p.split("/").filter(Boolean);
+  if (parts.some(x => x === ".." || x === ".") || p.startsWith("/") || /^[a-z]:/i.test(p)) throw new Error("paths must stay inside the folder");
+  return parts.join("/");
+}
+
+class HandleFS {   // the user's real folder, through the browser's File System Access API
+  constructor(dir) { this.dir = dir; this.name = dir.name; this.kind = "real"; }
+  async _dir(parts, create) { let d = this.dir; for (const p of parts) d = await d.getDirectoryHandle(p, {create}); return d; }
+  async list() {
+    const out = [];
+    const walk = async (d, pre) => {
+      for await (const [n, h] of d.entries()) {
+        const p = pre ? pre + "/" + n : n;
+        if (hiddenPath(p)) continue;
+        if (h.kind === "directory") await walk(h, p); else out.push(p);
+        if (out.length >= MAX_FILES) return;
+      }
+    };
+    await walk(this.dir, ""); return out.sort();
+  }
+  async read(p) { const parts = p.split("/"), f = await (await this._dir(parts.slice(0, -1), false)).getFileHandle(parts.at(-1)); return await f.getFile(); }
+  async write(p, text) {
+    const parts = p.split("/"), d = await this._dir(parts.slice(0, -1), true);
+    const w = await (await d.getFileHandle(parts.at(-1), {create: true})).createWritable(); await w.write(text); await w.close();
+  }
+  async remove(p) { const parts = p.split("/"); await (await this._dir(parts.slice(0, -1), false)).removeEntry(parts.at(-1)); }
+  async exists(p) { try { await this.read(p); return true; } catch (e) { return false; } }
+}
+class MemFS {      // an uploaded copy, kept in this tab; download it when done
+  constructor(name, files) { this.name = name; this.files = files; this.kind = "copy"; }
+  async list() { return [...this.files.keys()].filter(p => !hiddenPath(p)).sort(); }
+  async read(p) { const f = this.files.get(p); if (!f) throw new Error("not found"); return f; }
+  async write(p, text) { this.files.set(p, new Blob([text], {type: "text/plain"})); }
+  async remove(p) { this.files.delete(p); }
+  async exists(p) { return this.files.has(p); }
+}
+let FS = null;
+async function readText(p) {
+  const f = await FS.read(p);
+  if (f.size > MAX_READ) throw new Error(`${p} is too big to read (${Math.round(f.size / 1024)} KB)`);
+  const buf = new Uint8Array(await f.arrayBuffer());
+  if (buf.subarray(0, 8000).includes(0)) throw new Error(`${p} is not a text file`);
+  return new TextDecoder().decode(buf);
+}
+
+$("pick").onclick = async () => {
+  if (BUSY) return toast("Stop the AI first.", true);
+  if (window.showDirectoryPicker) {
+    try { const d = await window.showDirectoryPicker({mode: "readwrite"}); setFS(new HandleFS(d)); }
+    catch (e) { if (e.name !== "AbortError") toast(e.message, true); }
+  } else $("upload").click();
+};
+$("upload").onchange = () => {
+  const files = new Map(); let root = "";
+  for (const f of $("upload").files) {
+    const rel = f.webkitRelativePath || f.name; const parts = rel.split("/");
+    root = root || (parts.length > 1 ? parts[0] : "Uploaded files");
+    files.set(parts.length > 1 ? parts.slice(1).join("/") : rel, f);
+  }
+  if (files.size) setFS(new MemFS(root, files));
+  $("upload").value = "";
+};
+async function setFS(fs) {
+  FS = fs; STAGED.clear(); renderReview();
+  const n = (await FS.list()).length;
+  $("fname").textContent = FS.name;
+  $("fmeta").textContent = `${n} file${n === 1 ? "" : "s"} · ${FS.kind === "real" ? "your real folder" : "a copy in this tab"}`;
+  $("fnote").textContent = FS.kind === "real" ? "Hidden from the AI: passwords and keys (.env, .pem, .ssh…), .git and node_modules."
+    : "This browser can't change folders directly, so Cuff works on a copy. Use Download files to save the results.";
+  $("download").hidden = FS.kind !== "copy";
+  $("pick").textContent = "Change folder…";
+  log(`Folder chosen: ${FS.name}`); hint(); renderWelcome();
+}
+
+/* ---------- staged edits (level 2) and restore points (level 5) ---------- */
+const STAGED = new Map();   // path -> new text, or null to delete
+const SNAPS = [];           // {ts, label, files: Map(path -> old text or null)}
+async function view(p) { if (STAGED.has(p)) { const v = STAGED.get(p); if (v === null) throw new Error("not found"); return v; } return await readText(p); }
+async function viewList() {
+  const set = new Set(await FS.list());
+  for (const [p, v] of STAGED) v === null ? set.delete(p) : set.add(p);
+  return [...set].sort();
+}
+let runSnap = null;
+async function realWrite(p, text) {
+  if (!runSnap) { runSnap = {ts: Date.now(), label: "Before: " + (LAST_ASK || "AI changes").slice(0, 60), files: new Map()}; SNAPS.unshift(runSnap); }
+  if (!runSnap.files.has(p)) { let old = null; try { old = await readText(p); } catch (e) {} runSnap.files.set(p, old); }
+  if (text === null) await FS.remove(p); else await FS.write(p, text);
+  renderSnaps();
+}
+async function applyPaths(paths) {
+  const snap = {ts: Date.now(), label: "Before applying " + paths.length + " change" + (paths.length > 1 ? "s" : ""), files: new Map()};
+  for (const p of paths) { let old = null; try { old = await readText(p); } catch (e) {} snap.files.set(p, old); }
+  for (const p of paths) { const v = STAGED.get(p); if (v === null) { try { await FS.remove(p); } catch (e) {} } else await FS.write(p, v); STAGED.delete(p); ORIG.delete(p); }
+  SNAPS.unshift(snap); renderSnaps(); renderReview(); log(`Applied ${paths.length} change(s)`);
+}
+async function restore(i) {
+  const s = SNAPS[i];
+  const undo = {ts: Date.now(), label: "Undo restore", files: new Map()};
+  for (const [p, old] of s.files) {
+    let cur = null; try { cur = await readText(p); } catch (e) {} undo.files.set(p, cur);
+    if (old === null) { try { await FS.remove(p); } catch (e) {} } else await FS.write(p, old);
+  }
+  SNAPS.splice(i, 1); SNAPS.unshift(undo); renderSnaps(); toast("Files restored. You can undo this."); log("Restored a restore point");
+}
+function renderReview() {
+  const n = STAGED.size;
+  $("nrev").hidden = !n; $("nrev").textContent = n; $("revbtns").hidden = !n;
+  $("changes").innerHTML = n ? [...STAGED].map(([p, v]) => `<div class="chg"><span class="k ${v === null ? "d" : ORIG.has(p) ? "" : "a"}">${v === null ? "−" : ORIG.has(p) ? "~" : "+"}</span><span class="p" title="${esc(p)}">${esc(p)}</span><button data-see="${esc(p)}">View</button></div>`).join("")
+    : `<p class="empty">Nothing waiting.</p>`;
+  $("changes").querySelectorAll("[data-see]").forEach(b => b.onclick = () => showDiff(b.dataset.see));
+}
+const ORIG = new Set();   // staged paths that existed before
+function renderSnaps() {
+  $("snaps").innerHTML = SNAPS.length ? SNAPS.slice(0, 8).map((s, i) => `<div class="chg"><span class="p" style="font-family:inherit" title="${esc(s.label)}">${esc(s.label)}<br><span style="color:var(--ink3);font-size:12px">${new Date(s.ts).toLocaleTimeString()} · ${s.files.size} file${s.files.size > 1 ? "s" : ""}</span></span><button data-rs="${i}">Restore</button></div>`).join("")
+    + `<p class="note">Restore points last until you close this tab.</p>` : `<p class="empty">Saved before any real file changes.</p>`;
+  $("snaps").querySelectorAll("[data-rs]").forEach(b => b.onclick = () => { if (confirm("Put these files back how they were?")) restore(+b.dataset.rs); });
+}
+$("apply").onclick = () => applyPaths([...STAGED.keys()]);
+$("discard").onclick = () => { if (confirm("Throw away all the AI's suggested edits?")) { STAGED.clear(); ORIG.clear(); renderReview(); log("Discarded suggested edits"); } };
+
+/* line diff (longest common subsequence, trimmed to the changed region) */
+function diffLines(a, b) {
+  const A = a.split("\n"), B = b.split("\n");
+  let s = 0; while (s < A.length && s < B.length && A[s] === B[s]) s++;
+  let ea = A.length, eb = B.length; while (ea > s && eb > s && A[ea - 1] === B[eb - 1]) { ea--; eb--; }
+  const a2 = A.slice(s, ea), b2 = B.slice(s, eb), out = [];
+  if (a2.length * b2.length > 4_000_000) { a2.forEach(x => out.push(["d", x])); b2.forEach(x => out.push(["a", x])); }
+  else {
+    const m = a2.length, n = b2.length, L = Array.from({length: m + 1}, () => new Uint32Array(n + 1));
+    for (let i = m - 1; i >= 0; i--) for (let j = n - 1; j >= 0; j--) L[i][j] = a2[i] === b2[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    let i = 0, j = 0;
+    while (i < m && j < n) { if (a2[i] === b2[j]) { out.push([" ", a2[i]]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) out.push(["d", a2[i++]]); else out.push(["a", b2[j++]]); }
+    while (i < m) out.push(["d", a2[i++]]); while (j < n) out.push(["a", b2[j++]]);
+  }
+  const ctx = A.slice(Math.max(0, s - 3), s).map(x => [" ", x]), tail = A.slice(ea, ea + 3).map(x => [" ", x]);
+  return {lines: [...ctx, ...out, ...tail], before: Math.max(0, s - 3), after: Math.max(0, A.length - ea - 3)};
+}
+let diffPath = null;
+async function showDiff(p) {
+  diffPath = p; const v = STAGED.get(p); let old = "";
+  try { old = await readText(p); } catch (e) {}
+  $("difftitle").textContent = p;
+  $("diffmeta").textContent = v === null ? "The AI wants to delete this file." : ORIG.has(p) ? "Suggested edit" : "New file";
+  const d = diffLines(old, v ?? "");
+  $("diffbody").innerHTML = (d.before ? `<div class="gap">⋯ ${d.before} unchanged line${d.before > 1 ? "s" : ""}</div>` : "")
+    + d.lines.map(([k, t]) => `<div class="${k === "a" ? "a" : k === "d" ? "d" : ""}">${k === " " ? " " : k === "a" ? "+" : "−"} ${esc(t)}</div>`).join("")
+    + (d.after ? `<div class="gap">⋯ ${d.after} unchanged line${d.after > 1 ? "s" : ""}</div>` : "");
+  $("diffdlg").showModal();
+}
+$("dclose").onclick = () => $("diffdlg").close();
+$("dyes").onclick = async () => { $("diffdlg").close(); await applyPaths([diffPath]); };
+$("dno").onclick = () => { STAGED.delete(diffPath); ORIG.delete(diffPath); $("diffdlg").close(); renderReview(); };
+
+/* ---------- download an uploaded copy as a .zip (no compression) ---------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+async function zip(files) {
+  const parts = [], cen = []; let off = 0; const enc = new TextEncoder();
+  for (const [name, blob] of files) {
+    const data = new Uint8Array(await blob.arrayBuffer()), nm = enc.encode(name), crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30)); h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, nm.length, true);
+    parts.push(h.buffer, nm, data);
+    const c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+    c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    cen.push(c.buffer, nm); off += 30 + nm.length + data.length;
+  }
+  const csize = cen.reduce((s, x) => s + x.byteLength, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.size, true); e.setUint16(10, files.size, true); e.setUint32(12, csize, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...cen, e.buffer], {type: "application/zip"});
+}
+$("download").onclick = async () => {
+  if (STAGED.size && !confirm("Some suggested edits aren't applied yet. Download without them?")) return;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(await zip(FS.files)); a.download = FS.name + ".zip"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+
+/* ---------- the AI's tools, checked against the dial on every call ---------- */
+const TOOLS = [
+  {name: "list_files", min: 1, description: "List the files in the user's folder (or a subfolder). Secrets and junk folders are hidden.",
+   schema: {type: "object", properties: {path: {type: "string", description: "Subfolder, or empty for the whole folder"}}}},
+  {name: "read_file", min: 1, description: "Read a text file from the folder.",
+   schema: {type: "object", properties: {path: {type: "string"}}, required: ["path"]}},
+  {name: "search", min: 1, description: "Find lines containing some text, across the folder's text files.",
+   schema: {type: "object", properties: {text: {type: "string"}, path: {type: "string", description: "Optional subfolder"}}, required: ["text"]}},
+  {name: "write_file", min: 2, description: "Create a file or replace all of its content.",
+   schema: {type: "object", properties: {path: {type: "string"}, content: {type: "string"}}, required: ["path", "content"]}},
+  {name: "edit_file", min: 2, description: "Replace one exact piece of text in a file. old_text must appear exactly once.",
+   schema: {type: "object", properties: {path: {type: "string"}, old_text: {type: "string"}, new_text: {type: "string"}}, required: ["path", "old_text", "new_text"]}},
+  {name: "delete_file", min: 2, description: "Delete a file.", schema: {type: "object", properties: {path: {type: "string"}}, required: ["path"]}},
+];
+function toolsFor(lv) { return FS ? TOOLS.filter(t => lv >= t.min) : []; }
+async function runTool(name, args) {
+  const t = TOOLS.find(x => x.name === name);
+  if (!t) throw new Error("unknown tool");
+  if (level < t.min) throw new Error(`blocked: access is set to "${LEVELS.find(l => l.n === level).name}"`);
+  if (!FS) throw new Error("no folder chosen");
+  const p = name === "search" || name === "list_files" ? cleanPath(args.path || "") : cleanPath(args.path);
+  if (p && hiddenPath(p)) throw new Error("blocked: that path is hidden from the AI");
+  if (name === "list_files") {
+    const all = (await viewList()).filter(f => !p || f === p || f.startsWith(p + "/"));
+    return all.length ? all.slice(0, 1500).join("\n") + (all.length > 1500 ? `\n… and ${all.length - 1500} more` : "") : "(no files)";
+  }
+  if (name === "read_file") { const t = await view(p); return t.length > 100_000 ? t.slice(0, 100_000) + "\n… (cut off)" : t; }
+  if (name === "search") {
+    const q = String(args.text || ""); if (!q) throw new Error("text is empty");
+    const out = [];
+    for (const f of (await viewList()).filter(f => !p || f.startsWith(p + "/") || f === p)) {
+      let txt; try { txt = await view(f); } catch (e) { continue; }
+      txt.split("\n").forEach((line, i) => { if (out.length < 200 && line.includes(q)) out.push(`${f}:${i + 1}: ${line.slice(0, 200)}`); });
+      if (out.length >= 200) break;
+    }
+    return out.join("\n") || "no matches";
+  }
+  if (!p) throw new Error("give a file path");
+  let next;
+  if (name === "write_file") next = String(args.content ?? "");
+  else if (name === "delete_file") { await view(p); next = null; }
+  else {
+    const cur = await view(p), o = String(args.old_text ?? ""), n = String(args.new_text ?? "");
+    const count = o ? cur.split(o).length - 1 : 0;
+    if (count !== 1) throw new Error(count ? `old_text appears ${count} times; include more surrounding text` : "old_text wasn't found in the file");
+    next = cur.replace(o, () => n);
+  }
+  if (level === 2) {
+    if (!STAGED.has(p) && await FS.exists(p)) ORIG.add(p);
+    if (next === null && !ORIG.has(p)) STAGED.delete(p); else STAGED.set(p, next);
+    renderReview();
+    return `Saved as a suggestion for the user to review (${next === null ? "delete" : "edit"} ${p}). Nothing real changed yet.`;
+  }
+  await realWrite(p, next);
+  return next === null ? `Deleted ${p}.` : `Wrote ${p}. A restore point was saved first.`;
+}
+
+/* ---------- talking to the AI service ---------- */
+const PROVIDERS = {
+  anthropic: {models: ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"], key: "https://console.anthropic.com/settings/keys"},
+  openai: {models: ["gpt-5", "gpt-5-mini"], key: "https://platform.openai.com/api-keys"},
+};
+function system() {
+  const L = LEVELS.find(l => l.n === level);
+  return `You are an AI assistant working inside Cuff AI, which controls what you may do on the user's computer.
+Access level: ${level} (${L.name}). ${L.desc}
+${FS ? `You can use tools on the folder "${FS.name}". Paths are relative to it. Some files (passwords, keys, .git, node_modules) are hidden from you on purpose; don't try to reach them.` : "No folder is shared, so you have no tools. If the user wants file work, tell them to choose a folder on the left."}
+${level === 2 ? "Your edits are saved as suggestions. The user reviews them and applies the ones they like, so tell them what you changed and why." : ""}
+${level === 1 ? "You can't change files at this level. If a change is needed, describe it and suggest the user raise access to Suggest edits." : ""}
+If a tool says "blocked", don't try to work around it; explain what you'd need and let the user decide.
+Be concise. Use plain language.`;
+}
+async function callAI(history, signal) {
+  const prov = $("prov").value, key = $("key").value.trim(), model = $("model").value.trim();
+  if (!key) throw new Error("Paste your API key under Your AI first.");
+  const tools = toolsFor(level);
+  if (prov === "anthropic") {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {method: "POST", signal,
+      headers: {"content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
+      body: JSON.stringify({model, max_tokens: 8000, system: system(), messages: history.anthropic,
+        ...(tools.length ? {tools: tools.map(t => ({name: t.name, description: t.description, input_schema: t.schema}))} : {})})});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(apiError(r.status, j?.error?.message));
+    history.anthropic.push({role: "assistant", content: j.content});
+    return {text: j.content.filter(b => b.type === "text").map(b => b.text).join("\n"),
+      calls: j.content.filter(b => b.type === "tool_use").map(b => ({id: b.id, name: b.name, args: b.input || {}}))};
+  }
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {method: "POST", signal,
+    headers: {"content-type": "application/json", authorization: "Bearer " + key},
+    body: JSON.stringify({model, messages: [{role: "system", content: system()}, ...history.openai],
+      ...(tools.length ? {tools: tools.map(t => ({type: "function", function: {name: t.name, description: t.description, parameters: t.schema}}))} : {})})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(apiError(r.status, j?.error?.message));
+  const m = j.choices[0].message; history.openai.push(m);
+  return {text: m.content || "", calls: (m.tool_calls || []).map(c => { let a = {}; try { a = JSON.parse(c.function.arguments || "{}"); } catch (e) {} return {id: c.id, name: c.function.name, args: a}; })};
+}
+function apiError(status, msg) {
+  if (status === 401) return "The AI service didn't accept your key. Check it under Your AI.";
+  if (status === 429) return "The AI service says you're sending too much, or your account is out of credit. " + (msg || "");
+  if (status === 404) return "That model isn't available on your account. Pick another under Your AI. " + (msg || "");
+  return (msg || "The AI service returned an error") + ` (${status})`;
+}
+function addResults(history, prov, results) {
+  if (prov === "anthropic") history.anthropic.push({role: "user", content: results.map(r => ({type: "tool_result", tool_use_id: r.id, content: r.out, is_error: r.err}))});
+  else for (const r of results) history.openai.push({role: "tool", tool_call_id: r.id, content: (r.err ? "Error: " : "") + r.out});
+}
+
+/* ---------- the conversation ---------- */
+const HIST = {anthropic: [], openai: []};
+let BUSY = false, CTRL = null, LAST_ASK = "";
+function addEl(cls, html) { $("chat").querySelector(".welcome")?.remove(); const d = document.createElement("div"); d.className = cls; d.innerHTML = html; $("chat").appendChild(d); $("chat").scrollTop = 1e9; return d; }
+function md(t) {   // a small, safe subset: code blocks, inline code, bold
+  return esc(t).replace(/```[a-z0-9_-]*\n([\s\S]*?)```/gi, (_, c) => `<pre>${c}</pre>`).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>");
+}
+const STEP = {list_files: "Looked at the files", read_file: "Read", search: "Searched for", write_file: "Wrote", edit_file: "Edited", delete_file: "Deleted"};
+function log(text) { const L = JSON.parse(store.get("cuffweb.log") || "[]"); L.push({t: Date.now(), text}); store.set("cuffweb.log", JSON.stringify(L.slice(-200))); }
+
+async function ask(text) {
+  if (BUSY) return;
+  const prov = $("prov").value;
+  LAST_ASK = text; runSnap = null;
+  addEl("msg user", `<div class="bubble">${esc(text)}</div>`);
+  HIST.anthropic.push({role: "user", content: text}); HIST.openai.push({role: "user", content: text});
+  BUSY = true; CTRL = new AbortController(); busyUI();
+  let think = addEl("thinking", `<span class="spin"></span> Thinking…`);
+  try {
+    for (let turn = 0; turn < 40; turn++) {
+      const r = await callAI(HIST, CTRL.signal);
+      think.remove();
+      if (r.text.trim()) addEl("msg ai", `<div class="bubble">${md(r.text.trim())}</div>`);
+      if (!r.calls.length) break;
+      const results = [];
+      for (const c of r.calls) {
+        if (CTRL.signal.aborted) throw new DOMException("stopped", "AbortError");
+        let out, err = false;
+        try { out = await runTool(c.name, c.args); } catch (e) { out = String(e.message || e); err = true; }
+        const label = STEP[c.name] || c.name, what = c.args.path || c.args.text || "";
+        addEl("step" + (err && out.startsWith("blocked") ? " blocked" : ""), `<i></i>${esc(label)} ${what ? `<code>${esc(what)}</code>` : ""}${err ? ` · ${esc(out.slice(0, 120))}` : ""}`);
+        log(`${label} ${what}${err ? " (" + out.slice(0, 60) + ")" : ""}`);
+        results.push({id: c.id, out: String(out).slice(0, 150_000), err});
+      }
+      addResults(HIST, prov, results);
+      think = addEl("thinking", `<span class="spin"></span> Working…`);
+    }
+    think.remove();
+  } catch (e) {
+    think.remove();
+    // keep the history valid for the next message: drop an unanswered tool request
+    const H = HIST[prov]; const last = H.at(-1);
+    if (last && last.role === "assistant" && ((last.content || []).some?.(b => b.type === "tool_use") || last.tool_calls)) H.pop();
+    if (e.name === "AbortError") addEl("err", "Stopped.");
+    else addEl("err", esc(e.message || String(e)));
+  }
+  BUSY = false; CTRL = null; busyUI();
+  if (STAGED.size && level === 2) toast(`${STAGED.size} suggested edit${STAGED.size > 1 ? "s" : ""} waiting for your review.`);
+}
+function stopRun(why) { if (CTRL) CTRL.abort(); log(why || "Stopped"); }
+$("stop").onclick = () => stopRun("Stopped by you");
+function busyUI() { $("stop").disabled = !BUSY; $("send").disabled = BUSY; $("send").textContent = BUSY ? "Working…" : "Send"; }
+$("form").onsubmit = e => { e.preventDefault(); const t = $("input").value.trim(); if (!t) return; $("input").value = ""; grow(); ask(t); };
+$("input").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("form").requestSubmit(); } });
+function grow() { const t = $("input"); t.style.height = "auto"; t.style.height = Math.min(200, t.scrollHeight) + "px"; }
+$("input").addEventListener("input", grow);
+function hint() {
+  $("hintline").textContent = !FS ? "No folder shared: the AI can only chat." : `Access: ${LEVELS.find(l => l.n === level).name} on “${FS.name}”. Enter to send, Shift+Enter for a new line.`;
+}
+
+/* ---------- AI settings ---------- */
+function loadAI() {
+  const p = store.get("cuffweb.prov") || "anthropic"; $("prov").value = p;
+  $("model").value = store.get("cuffweb.model." + p) || PROVIDERS[p].models[0];
+  $("models").innerHTML = PROVIDERS[p].models.map(m => `<option value="${m}">`).join("");
+  $("keylink").href = PROVIDERS[p].key;
+  const k = store.get("cuffweb.key." + p); $("key").value = k || ""; $("remember").checked = !!k;
+  renderWelcome();
+}
+$("prov").onchange = () => { store.set("cuffweb.prov", $("prov").value); loadAI(); };
+$("model").onchange = () => store.set("cuffweb.model." + $("prov").value, $("model").value.trim());
+function saveKey() { const p = $("prov").value; store.set("cuffweb.key." + p, $("remember").checked && $("key").value.trim() ? $("key").value.trim() : null); renderWelcome(); }
+$("key").oninput = saveKey; $("remember").onchange = saveKey;
+$("toggle").onclick = () => { $("app").classList.toggle("side"); $("toggle").textContent = $("app").classList.contains("side") ? "Chat" : "Controls"; };
+
+function renderWelcome() {
+  if ($("chat").querySelector(".msg,.step,.err")) return;
+  const hasKey = !!$("key").value.trim();
+  $("chat").innerHTML = `<div class="welcome"><div class="mark"></div><h1>Cuff AI, right in your browser</h1>
+    <p>Let an AI work on a folder of yours, with the same dial as the Cuff app. Nothing to install.</p>
+    <div class="steps3">
+      <div class="${FS ? "done" : ""}"><b>1. Choose a folder</b><span>${FS ? "Done: " + esc(FS.name) : "Only that folder is visible to the AI.<span class='onlymobile'> Tap Controls.</span>"}</span></div>
+      <div class="${hasKey ? "done" : ""}"><b>2. Add your AI key</b><span>${hasKey ? "Done." : "Claude or OpenAI, under Your AI.<span class='onlymobile'> Tap Controls.</span>"}</span></div>
+      <div><b>3. Ask for something</b><span>At Suggest edits, you approve every change.</span></div>
+    </div>
+    <p class="note" style="margin-top:22px">${window.showDirectoryPicker ? "Works on your real folder in this browser." : "This browser works on a copy of your folder. For direct editing, use Chrome or Edge on a computer, or get the app."}
+    Need to contain Claude Code or other agents? <a href="../#download">Get the desktop app</a>.</p></div>`;
+}
+drawDial(); loadAI(); renderReview(); renderSnaps(); busyUI(); hint();
+</script>
+</body>
+</html>
