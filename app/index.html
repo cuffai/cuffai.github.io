@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src https://api.anthropic.com https://api.openai.com">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src https://api.anthropic.com https://api.openai.com https://unehdhdrbhkkvoripxat.supabase.co; worker-src 'self'">
 <title>Cuff AI Web</title>
 <link rel="icon" href="../icon-192.png">
 <style>
@@ -334,6 +334,14 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .aibar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px;color:var(--ink2)}
 .aibar .okdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--greenbg)}
 .aibar .sp{flex:1}
+.aiwho{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+.meter{display:inline-block;width:90px;height:6px;border-radius:3px;background:var(--fill2);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px;transition:width .6s cubic-bezier(.2,.9,.3,1)}
+.seg2{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--fill);margin-top:10px;flex-wrap:wrap}
+.seg2 button{border:0;background:none;border-radius:9px;padding:7px 12px;font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
+.seg2 button.on{background:var(--surface-solid);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.codein{letter-spacing:.4em;font-size:18px!important;max-width:200px}
+.keyrow input[type=email]{font-family:inherit;font-size:14px}
 
 /* chat */
 .chatcard{display:flex;flex-direction:column;min-height:420px}
@@ -418,25 +426,37 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
       </div>
       <div class="steprow" id="s2">
         <div class="num" id="n2">2</div>
-        <div><h3>Connect your AI</h3><p>Use your own key. It goes straight from this page to the AI service.</p>
+        <div><h3>Connect your AI</h3><p>Sign in for free AI each month, or use your own key.</p>
           <div id="s2done" hidden></div>
           <div id="s2body">
-            <div class="keyrow">
-              <select class="sel2" id="prov" aria-label="AI service"><option value="anthropic">Claude</option><option value="openai">OpenAI</option></select>
-              <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your API key" aria-label="API key">
-              <button class="btn go" id="connect">Connect</button>
+            <div class="seg2" role="tablist"><button id="tabcuff" role="tab" class="on">Sign in · free AI included</button><button id="tabkey" role="tab">Use my own key</button></div>
+            <div id="paneCuff">
+              <div id="cuffform">
+                <div class="keyrow"><input id="email" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email"><button class="btn go" id="sendcode">Email me a code</button></div>
+                <div class="keyrow" id="coderow" hidden><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="Code from the email" class="codein"><button class="btn go" id="verify">Sign in</button></div>
+                <p class="keymsg" id="cuffmsg"></p>
+                <p class="small" id="plantext">Free: $0.50 of AI every month, no card needed. Pro: $12/month for 12× more and every model.</p>
+              </div>
+              <p class="small" id="cuffoff" hidden>Signing in with Cuff is coming very soon. For now, use your own key.</p>
             </div>
-            <label class="chk"><input type="checkbox" id="remember" checked> Remember on this device</label>
-            <p class="keymsg" id="keymsg"></p>
-            <p class="small">Don't have one? <a id="keylink" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">Get a key</a> (add a few dollars of credit first). Each task usually costs cents.</p>
+            <div id="paneKey" hidden>
+              <div class="keyrow">
+                <select class="sel2" id="prov" aria-label="AI service"><option value="anthropic">Claude</option><option value="openai">OpenAI</option></select>
+                <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your API key" aria-label="API key">
+                <button class="btn go" id="connect">Connect</button>
+              </div>
+              <label class="chk"><input type="checkbox" id="remember" checked> Remember on this device</label>
+              <p class="keymsg" id="keymsg"></p>
+              <p class="small">Don't have one? <a id="keylink" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">Get a key</a> (add a few dollars of credit first). Usage is billed to your account.</p>
+            </div>
           </div></div>
       </div>
     </section>
 
     <section class="card chatcard" aria-labelledby="h-chat">
       <div class="head"><div><h2 id="h-chat">Ask your AI</h2><p class="sub" id="chatsub">It works on your folder at the level on the dial.</p></div></div>
-      <div class="aibar" id="aibar" hidden><span class="okdot"></span><span id="aiwho"></span><span class="sp"></span>
-        <select class="sel2" id="model" aria-label="Model"></select><button class="linkbtn" id="changekey">Change key</button></div>
+      <div class="aibar" id="aibar" hidden><span class="okdot"></span><span id="aiwho" class="aiwho"></span><span class="sp"></span>
+        <select class="sel2" id="model" aria-label="Model"></select><button class="btn go sm" id="planbtn" hidden>Upgrade</button><button class="linkbtn" id="changekey">Change</button></div>
       <div class="chatlog" id="chatlog" aria-live="polite"></div>
       <form class="composer" id="form"><textarea id="input" rows="1" placeholder="Ask your AI to do something in this folder…" aria-label="Message"></textarea><button class="btn primary" id="send">Send</button></form>
       <p class="chathint" id="chathint"></p>
@@ -633,18 +653,235 @@ class MemFS {
   constructor(name, files) { this.name = name; this.files = files; this.kind = "copy"; }
   async list() { return [...this.files.keys()].filter(p => !hiddenPath(p)).sort(); }
   async read(p) { const f = this.files.get(p); if (!f) throw new Error("not found"); return f; }
-  async write(p, text) { this.files.set(p, new Blob([text], {type: "text/plain"})); }
+  async write(p, data) { this.files.set(p, data instanceof Blob ? data : new Blob([data], {type: "text/plain"})); }
   async remove(p) { this.files.delete(p); }
   async exists(p) { return this.files.has(p); }
 }
 let FS = null, FILES = [];
+/* ---------- reading files, including Word, Excel, PowerPoint and PDF ---------- */
+const OFFICE = /\.(docx|xlsx|pptx|pdf)$/i;
+const TEXT_CACHE = new Map();
 async function readText(p) {
   const f = await FS.read(p);
+  if (OFFICE.test(p)) {
+    if (f.size > 25_000_000) throw new Error(`${p} is too big to read (${Math.round(f.size / 1e6)} MB)`);
+    if (TEXT_CACHE.has(p)) return TEXT_CACHE.get(p);
+    let t;
+    try { t = await officeText(p, f); } catch (e) { throw new Error(`couldn't read ${p}: ${e.message || e}`); }
+    TEXT_CACHE.set(p, t); return t;
+  }
   if (f.size > MAX_READ) throw new Error(`${p} is too big to read (${Math.round(f.size / 1024)} KB)`);
   const buf = new Uint8Array(await f.arrayBuffer());
   if (buf.subarray(0, 8000).includes(0)) throw new Error(`${p} is not a text file`);
   return new TextDecoder().decode(buf);
 }
+async function readCopy(p) { try { const f = await FS.read(p); return new Blob([await f.arrayBuffer()], {type: f.type}); } catch (e) { return null; } }
+async function writeFile(p, data) { TEXT_CACHE.delete(p); if (data === null) await FS.remove(p); else await FS.write(p, data); }
+
+async function unzip(blob) {
+  const b = new Uint8Array(await blob.arrayBuffer()), dv = new DataView(b.buffer, b.byteOffset, b.byteLength), dec = new TextDecoder();
+  let e = b.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error("it isn't a valid Office file");
+  const count = dv.getUint16(e + 10, true), entries = new Map(); let off = dv.getUint32(e + 16, true);
+  for (let i = 0; i < count && dv.getUint32(off, true) === 0x02014b50; i++) {
+    const nlen = dv.getUint16(off + 28, true);
+    entries.set(dec.decode(b.subarray(off + 46, off + 46 + nlen)),
+      {method: dv.getUint16(off + 10, true), csize: dv.getUint32(off + 20, true), loc: dv.getUint32(off + 42, true)});
+    off += 46 + nlen + dv.getUint16(off + 30, true) + dv.getUint16(off + 32, true);
+  }
+  return {
+    names: () => [...entries.keys()],
+    async bytes(n) {
+      const z = entries.get(n); if (!z) return null;
+      const start = z.loc + 30 + dv.getUint16(z.loc + 26, true) + dv.getUint16(z.loc + 28, true), data = b.subarray(start, start + z.csize);
+      if (z.method === 0) return data.slice();
+      if (z.method !== 8) throw new Error("it uses an unusual compression");
+      return new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    },
+    async text(n) { const x = await this.bytes(n); return x ? dec.decode(x) : null; },
+  };
+}
+const parseXml = s => new DOMParser().parseFromString(s, "application/xml");
+const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+const XMLESC = s => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").replace(/[<>&"]/g, c => ({"<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;"}[c]));
+const XMLHEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+
+async function officeText(p, f) {
+  const ext = p.split(".").pop().toLowerCase();
+  if (ext === "pdf") return pdfText(f);
+  const z = await unzip(f);
+  if (ext === "docx") return docxText(parseXml(await z.text("word/document.xml")));
+  if (ext === "xlsx") return xlsxText(z);
+  return pptxText(z);
+}
+function nearestP(n) { let x = n.parentNode; while (x && !(x.localName === "p" && x.namespaceURI === W)) x = x.parentNode; return x; }
+function paraText(p) {
+  let s = "";
+  for (const n of p.getElementsByTagNameNS(W, "*")) {
+    if (nearestP(n) !== p) continue;
+    if (n.localName === "t") s += n.textContent; else if (n.localName === "tab") s += "\t"; else if (n.localName === "br" || n.localName === "cr") s += "\n";
+  }
+  return s;
+}
+function docxText(doc) {
+  const out = [], body = doc.getElementsByTagNameNS(W, "body")[0];
+  const walk = el => {
+    for (const c of el.children) {
+      if (c.localName === "p") out.push(paraText(c));
+      else if (c.localName === "tbl") for (const tr of c.getElementsByTagNameNS(W, "tr"))
+        out.push([...tr.getElementsByTagNameNS(W, "tc")].map(tc => [...tc.getElementsByTagNameNS(W, "p")].map(paraText).join(" ")).join("\t"));
+      else if (c.localName === "sdt") walk(c.getElementsByTagNameNS(W, "sdtContent")[0] || c);
+    }
+  };
+  if (body) walk(body);
+  return out.join("\n");
+}
+const colIndex = r => { const m = /^[A-Z]+/.exec(r || "A"); let n = 0; for (const ch of m[0]) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+const csvCell = s => /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+async function xlsxText(z) {
+  const ss = [], sst = await z.text("xl/sharedStrings.xml");
+  if (sst) for (const si of parseXml(sst).getElementsByTagName("si")) ss.push([...si.getElementsByTagName("t")].map(t => t.textContent).join(""));
+  const wb = parseXml(await z.text("xl/workbook.xml")), rels = parseXml(await z.text("xl/_rels/workbook.xml.rels") || "<x/>");
+  const relMap = {}; for (const r of rels.getElementsByTagName("Relationship")) relMap[r.getAttribute("Id")] = r.getAttribute("Target");
+  const out = [];
+  for (const [i, sh] of [...wb.getElementsByTagName("sheet")].entries()) {
+    const rid = sh.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id") || sh.getAttribute("r:id");
+    let target = relMap[rid] || `worksheets/sheet${i + 1}.xml`;
+    target = target.startsWith("/") ? target.slice(1) : "xl/" + target.replace(/^\.\//, "");
+    const sx = await z.text(target); if (!sx) continue;
+    const rows = []; let formulas = false;
+    for (const row of parseXml(sx).getElementsByTagName("row")) {
+      const cells = [];
+      for (const c of row.getElementsByTagName("c")) {
+        const t = c.getAttribute("t"), vEl = c.getElementsByTagName("v")[0];
+        if (c.getElementsByTagName("f").length) formulas = true;
+        cells[colIndex(c.getAttribute("r"))] = t === "s" ? (ss[+vEl?.textContent] ?? "") : t === "inlineStr"
+          ? [...c.getElementsByTagName("t")].map(x => x.textContent).join("") : (vEl?.textContent ?? "");
+      }
+      rows.push(Array.from(cells, x => csvCell(x ?? "")).join(","));
+      if (rows.length >= 5000) { rows.push("… (more rows not shown)"); break; }
+    }
+    out.push(`## Sheet: ${sh.getAttribute("name")}${formulas ? "\n(This sheet has formulas; their last calculated values are shown.)" : ""}\n` + rows.join("\n"));
+  }
+  return out.join("\n\n");
+}
+async function pptxText(z) {
+  const slides = z.names().filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a, b) => +a.match(/\d+/)[0] - +b.match(/\d+/)[0]);
+  const out = [];
+  for (const [i, s] of slides.entries()) {
+    const d = parseXml(await z.text(s));
+    const paras = [...d.getElementsByTagName("a:p")].map(p => [...p.getElementsByTagName("a:t")].map(t => t.textContent).join("")).filter(Boolean);
+    out.push(`## Slide ${i + 1}\n` + paras.join("\n"));
+  }
+  return out.join("\n\n");
+}
+let PDFJS = null;
+async function pdfText(f) {
+  if (!PDFJS) {
+    PDFJS = await import("./vendor/pdfjs/pdf.mjs");
+    PDFJS.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.mjs", location.href).href;
+  }
+  const doc = await PDFJS.getDocument({data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false}).promise;
+  const out = [];
+  for (let i = 1; i <= Math.min(doc.numPages, 300); i++) {
+    const tc = await (await doc.getPage(i)).getTextContent();
+    let s = "", lastY = null;
+    for (const it of tc.items) {
+      if (lastY !== null && it.transform && Math.abs(it.transform[5] - lastY) > 2 && !s.endsWith("\n")) s += "\n";
+      s += it.str || ""; if (it.hasEOL) s += "\n"; if (it.transform) lastY = it.transform[5];
+    }
+    out.push(`## Page ${i}\n${s.replace(/\n{3,}/g, "\n\n").trim()}`);
+  }
+  if (doc.numPages > 300) out.push(`… (${doc.numPages - 300} more pages not shown)`);
+  const all = out.join("\n\n");
+  return all.replace(/## Page \d+/g, "").trim() ? all : "(This PDF has no text in it; it's probably scanned pictures.)";
+}
+
+/* ---------- making Word and Excel files ---------- */
+const OPC_RELS = '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+function makeDocx(text) {
+  const body = String(text).replace(/\r/g, "").split("\n").map(line => {
+    let m, rPr = "", pPr = "", t = line;
+    if ((m = /^(#{1,3})\s+(.*)$/.exec(line))) { t = m[2]; rPr = `<w:rPr><w:b/><w:sz w:val="${[36, 30, 26][m[1].length - 1]}"/></w:rPr>`; pPr = '<w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr>'; }
+    else if ((m = /^\s*[-*•]\s+(.*)$/.exec(line))) { t = "•\t" + m[1]; pPr = '<w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr>'; }
+    const runs = t.split("\t").map((part, i) => (i ? "<w:tab/>" : "") + (part ? `<w:t xml:space="preserve">${XMLESC(part)}</w:t>` : "")).join("");
+    return `<w:p>${pPr}<w:r>${rPr}${runs}</w:r></w:p>`;
+  }).join("");
+  return zip(new Map([
+    ["[Content_Types].xml", new Blob([XMLHEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'])],
+    ["_rels/.rels", new Blob([XMLHEAD + OPC_RELS + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'])],
+    ["word/document.xml", new Blob([XMLHEAD + `<w:document xmlns:w="${W}"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>`])],
+  ]), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+}
+function parseCsv(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"' && cell === "") q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+const colName = i => { let s = ""; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+function makeXlsx(text) {
+  const sheets = []; let cur = {name: "Sheet1", lines: []};
+  for (const line of String(text).replace(/\r/g, "").split("\n")) {
+    const m = /^## Sheet:\s*(.+)$/.exec(line);
+    if (m) { if (cur.lines.some(l => l.trim()) || sheets.length) sheets.push(cur); cur = {name: m[1].trim().slice(0, 31).replace(/[\\/?*[\]:]/g, " "), lines: []}; }
+    else if (!/^\(This sheet has formulas/.test(line)) cur.lines.push(line);
+  }
+  sheets.push(cur);
+  const files = new Map();
+  sheets.forEach((s, i) => {
+    const rows = parseCsv(s.lines.join("\n").replace(/\n+$/, "")).map((r, ri) => `<row r="${ri + 1}">` + r.map((v, ci) => {
+      const ref = colName(ci) + (ri + 1);
+      if (v === "") return "";
+      return /^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(v.trim()) && v.trim().length < 16 ? `<c r="${ref}"><v>${v.trim()}</v></c>`
+        : `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${XMLESC(v)}</t></is></c>`;
+    }).join("") + "</row>").join("");
+    files.set(`xl/worksheets/sheet${i + 1}.xml`, new Blob([XMLHEAD + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>`]));
+  });
+  const R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  files.set("xl/workbook.xml", new Blob([XMLHEAD + `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${R}"><sheets>` +
+    sheets.map((s, i) => `<sheet name="${XMLESC(s.name || "Sheet" + (i + 1))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") + "</sheets></workbook>"]));
+  files.set("xl/_rels/workbook.xml.rels", new Blob([XMLHEAD + OPC_RELS + sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="${R}/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") + "</Relationships>"]));
+  files.set("_rels/.rels", new Blob([XMLHEAD + OPC_RELS + `<Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`]));
+  files.set("[Content_Types].xml", new Blob([XMLHEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") + "</Types>"]));
+  return zip(files, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+}
+// Change one piece of text in a Word file and keep its formatting.
+async function docxReplace(blob, oldT, newT) {
+  if (oldT.includes("\n")) throw new Error("in Word files, change one paragraph at a time (old_text can't span lines)");
+  const z = await unzip(blob), doc = parseXml(await z.text("word/document.xml"));
+  const hits = [];
+  for (const p of doc.getElementsByTagNameNS(W, "p")) {
+    const nodes = [...p.getElementsByTagNameNS(W, "t")].filter(t => nearestP(t) === p);
+    const full = nodes.map(t => t.textContent).join("");
+    let i = full.indexOf(oldT);
+    while (i >= 0) { hits.push({nodes, start: i}); i = full.indexOf(oldT, i + 1); }
+  }
+  if (hits.length !== 1) throw new Error(hits.length ? `old_text appears ${hits.length} times; include more surrounding text` : "old_text wasn't found in the document (it must be within one paragraph)");
+  const {nodes, start} = hits[0], end = start + oldT.length;
+  let pos = 0, placed = false;
+  for (const t of nodes) {
+    const s = t.textContent, a = pos, b = pos + s.length; pos = b;
+    if (b <= start || a >= end) continue;
+    const before = start > a ? s.slice(0, start - a) : "", after = end < b ? s.slice(end - a) : "";
+    t.textContent = before + (placed ? "" : newT) + after; placed = true;
+    t.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space", "preserve");
+  }
+  if (!placed && oldT === "") throw new Error("old_text is empty");
+  const files = new Map();
+  for (const n of z.names()) files.set(n, n === "word/document.xml"
+    ? new Blob([XMLHEAD + new XMLSerializer().serializeToString(doc.documentElement)]) : new Blob([await z.bytes(n)]));
+  return zip(files, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+}
+
 async function pickFolder() {
   if (BUSY) return toast("Stop the AI first.", true);
   if (window.showDirectoryPicker) {
@@ -694,20 +931,57 @@ function maybeFinishSetup() {
   }, 700);
 }
 
-/* ---------- connecting the AI: checked right away ---------- */
+
+/* ---------- connecting the AI: a Cuff account (free AI included) or your own key ---------- */
+const API = "https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-api";
 const PROVIDERS = {
   anthropic: {name: "Claude", models: [["claude-sonnet-5-5", "Sonnet 5.5 (balanced)"], ["claude-opus-5-5", "Opus 5.5 (most capable)"], ["claude-haiku-5-5", "Haiku 5.5 (fastest, cheapest)"]],
-    key: "https://platform.claude.com/settings/keys", prefix: "sk-ant-"},
-  openai: {name: "OpenAI", models: [["gpt-5", "GPT-5"], ["gpt-5-mini", "GPT-5 mini (cheaper)"]], key: "https://platform.openai.com/api-keys", prefix: "sk-"},
+    key: "https://platform.claude.com/settings/keys"},
+  openai: {name: "OpenAI", models: [["gpt-5", "GPT-5"], ["gpt-5-mini", "GPT-5 mini (cheaper)"]], key: "https://platform.openai.com/api-keys"},
 };
-let CONNECTED = false;
-function prov() { return $("prov").value; }
-function fillModels() {
-  const p = prov();
-  $("model").innerHTML = PROVIDERS[p].models.map(([id, label]) => `<option value="${id}">${esc(label)}</option>`).join("");
-  const saved = store.get("cuffweb.model." + p); if (saved && PROVIDERS[p].models.some(m => m[0] === saved)) $("model").value = saved;
-  $("keylink").href = PROVIDERS[p].key;
+const CUFF_MODELS = [["claude-haiku-5-5", "Haiku 5.5 (fast, uses least)"], ["claude-sonnet-5-5", "Sonnet 5.5 (smarter)"], ["claude-opus-5-5", "Opus 5.5 (most capable)"]];
+let CONNECTED = false, MODE = store.get("cuffweb.mode") || "cuff", TOKEN = store.get("cuffweb.token") || "", ME = null, STATUS = null;
+const prov = () => MODE === "cuff" ? "anthropic" : $("prov").value;
+const check16 = () => ICON.check.replace("<svg", '<svg width="16" height="16"');
+
+async function cuff(body, signal) {
+  const r = await fetch(API, {method: "POST", signal, headers: {"content-type": "application/json", ...(TOKEN ? {authorization: "Bearer " + TOKEN} : {})}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && TOKEN) { signOutLocal(); }
+  if (!r.ok) { const e = new Error(j.error || `Cuff's servers had a problem (${r.status}).`); e.status = r.status; e.upgrade = !!j.upgrade; if (j.me) { ME = j.me; renderAIBar(); } throw e; }
+  return j;
 }
+
+function setTab(m) {
+  $("tabcuff").classList.toggle("on", m === "cuff"); $("tabkey").classList.toggle("on", m === "key");
+  $("tabcuff").setAttribute("aria-selected", m === "cuff"); $("tabkey").setAttribute("aria-selected", m === "key");
+  $("paneCuff").hidden = m !== "cuff"; $("paneKey").hidden = m !== "key";
+  (m === "cuff" ? ($("coderow").hidden ? $("email") : $("code")) : $("key")).focus({preventScroll: true});
+}
+$("tabcuff").onclick = () => setTab("cuff");
+$("tabkey").onclick = () => setTab("key");
+
+function shake(el, msgEl, text) { el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); msgEl.className = "keymsg bad"; msgEl.textContent = text; }
+async function busyBtn(btn, label, fn) { if (btn.disabled) return; btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = `<span class="spin"></span> ${label}`; try { await fn(); } finally { btn.disabled = false; btn.innerHTML = old; } }
+
+$("sendcode").onclick = () => busyBtn($("sendcode"), "Sending", async () => {
+  const email = $("email").value.trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return shake($("email"), $("cuffmsg"), "Type your email address.");
+  try {
+    await cuff({op: "send_code", email});
+    $("coderow").hidden = false; $("cuffmsg").className = "keymsg"; $("cuffmsg").textContent = `We emailed a 6-digit code to ${email}. It works for 10 minutes.`;
+    $("sendcode").textContent = "Send again"; $("code").value = ""; $("code").focus();
+  } catch (e) { shake($("email"), $("cuffmsg"), e.message); }
+});
+$("email").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("sendcode").click(); } });
+$("code").addEventListener("input", () => { $("code").value = $("code").value.replace(/\D/g, "").slice(0, 6); if ($("code").value.length === 6) $("verify").click(); });
+$("verify").onclick = () => busyBtn($("verify"), "Signing in", async () => {
+  try {
+    const r = await cuff({op: "verify_code", email: $("email").value.trim(), code: $("code").value});
+    TOKEN = r.token; ME = r.me; store.set("cuffweb.token", TOKEN); setMode("cuff"); onConnected();
+  } catch (e) { shake($("code"), $("cuffmsg"), e.message); }
+});
+
 async function ping(p, key, model) {
   if (p === "anthropic") {
     const r = await fetch("https://api.anthropic.com/v1/messages", {method: "POST",
@@ -719,90 +993,119 @@ async function ping(p, key, model) {
     const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(apiError(r.status, j?.error?.message));
   }
 }
-async function connect() {
-  if ($("connect").disabled) return;
-  const p = prov(), key = $("key").value.trim();
-  const msg = $("keymsg"), btn = $("connect");
-  if (!key) { $("key").classList.remove("bad"); void $("key").offsetWidth; $("key").classList.add("bad"); msg.className = "keymsg bad"; msg.textContent = "Paste your key first."; return; }
-  btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Checking`; msg.className = "keymsg"; msg.textContent = "";
+$("connect").onclick = () => busyBtn($("connect"), "Checking", async () => {
+  const p = $("prov").value, key = $("key").value.trim();
+  if (!key) return shake($("key"), $("keymsg"), "Paste your key first.");
   try {
-    await ping(p, key, $("model").value || PROVIDERS[p].models[0][0]);
-    CONNECTED = true; store.set("cuffweb.prov", p);
-    store.set("cuffweb.key." + p, $("remember").checked ? key : null);
-    showConnected(p); markStep(2, true);
-  } catch (e) {
-    $("key").classList.remove("bad"); void $("key").offsetWidth; $("key").classList.add("bad");
-    msg.className = "keymsg bad"; msg.textContent = e.message || "Couldn't reach the AI service.";
-  }
-  btn.disabled = false; btn.textContent = "Connect";
+    await ping(p, key, PROVIDERS[p].models[0][0]);
+    store.set("cuffweb.prov", p); store.set("cuffweb.key." + p, $("remember").checked ? key : null);
+    setMode("key"); onConnected();
+  } catch (e) { shake($("key"), $("keymsg"), e.message || "Couldn't reach the AI service."); }
+});
+$("key").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("connect").click(); } });
+$("key").addEventListener("paste", () => setTimeout(() => { if ($("key").value.trim().length > 20) $("connect").click(); }, 50));
+$("prov").onchange = () => { $("key").value = store.get("cuffweb.key." + $("prov").value) || ""; $("keymsg").textContent = ""; $("keylink").href = PROVIDERS[$("prov").value].key; };
+
+function setMode(m) { MODE = m; store.set("cuffweb.mode", m); fillModels(); }
+function fillModels() {
+  const list = MODE === "cuff" ? CUFF_MODELS : PROVIDERS[prov()].models;
+  const allowed = MODE === "cuff" && ME ? ME.models : null;
+  $("model").innerHTML = list.map(([id, label]) => {
+    const locked = allowed && !allowed.includes(id);
+    return `<option value="${id}"${locked ? " disabled" : ""}>${esc(label)}${locked ? " · Pro" : ""}</option>`;
+  }).join("");
+  const saved = store.get("cuffweb.model." + (MODE === "cuff" ? "cuff" : prov()));
+  if (saved && list.some(m => m[0] === saved) && !(allowed && !allowed.includes(saved))) $("model").value = saved;
 }
-function showConnected(p) {
+$("model").onchange = () => store.set("cuffweb.model." + (MODE === "cuff" ? "cuff" : prov()), $("model").value);
+
+function onConnected() {
+  CONNECTED = true;
   $("s2body").hidden = true; $("s2done").hidden = false;
-  $("s2done").innerHTML = `<div class="doneline">${ICON.check.replace("<svg", '<svg width="16" height="16"')} Connected to ${PROVIDERS[p].name}</div>`;
-  showAIBar();
+  $("s2done").innerHTML = `<div class="doneline">${check16()} ${MODE === "cuff" ? `Signed in as ${esc(ME?.email || "")}` : `Connected to ${PROVIDERS[prov()].name}`}</div>`;
+  fillModels(); renderAIBar(); markStep(2, true);
 }
-function showAIBar() { $("aibar").hidden = !CONNECTED; $("aiwho").textContent = `Connected to ${PROVIDERS[prov()].name}`; }
-$("connect").onclick = connect;
-$("key").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); connect(); } });
-$("key").addEventListener("paste", () => setTimeout(() => { const v = $("key").value.trim(); if (v.length > 20) connect(); }, 50));
-$("prov").onchange = () => { fillModels(); $("key").value = store.get("cuffweb.key." + prov()) || ""; $("keymsg").textContent = ""; };
-$("model").onchange = () => store.set("cuffweb.model." + prov(), $("model").value);
-$("changekey").onclick = () => {
-  CONNECTED = false; store.set("cuffweb.key." + prov(), null); $("aibar").hidden = true;
-  $("key").value = ""; $("s2body").hidden = false; $("s2done").hidden = true;
-  $("s2").classList.remove("done"); $("n2").textContent = "2"; maybeFinishSetup();
-  $("setup").scrollIntoView({behavior: "smooth", block: "start"}); $("key").focus();
+function signOutLocal() {
+  TOKEN = ""; ME = null; store.set("cuffweb.token", null);
+  if (MODE === "cuff") { CONNECTED = false; renderAIBar(); resetStep2(); }
+}
+function resetStep2() {
+  $("s2body").hidden = false; $("s2done").hidden = true; $("s2").classList.remove("done"); $("n2").textContent = "2";
+  $("coderow").hidden = true; $("cuffmsg").textContent = ""; $("keymsg").textContent = ""; maybeFinishSetup();
+}
+function renderAIBar() {
+  $("aibar").hidden = !CONNECTED;
+  if (!CONNECTED) return;
+  if (MODE === "cuff" && ME) {
+    const pct = Math.min(100, Math.round(100 * ME.used / ME.limit));
+    $("aiwho").innerHTML = `<b>Cuff ${ME.plan === "pro" ? "Pro" : "Free"}</b><span class="meter" title="${pct}% of this month's AI used"><i style="width:${pct}%;background:${pct > 85 ? "var(--red)" : "var(--accent)"}"></i></span><span>${pct}% of this month's AI used</span>`;
+    $("planbtn").hidden = false; $("planbtn").textContent = ME.plan === "pro" ? "Manage plan" : "Upgrade";
+    $("planbtn").className = ME.plan === "pro" ? "linkbtn" : "btn go sm";
+    $("changekey").textContent = "Sign out";
+  } else {
+    $("aiwho").textContent = `Connected to ${PROVIDERS[prov()].name} with your key`;
+    $("planbtn").hidden = true; $("changekey").textContent = "Change";
+  }
+}
+$("planbtn").onclick = () => busyBtn($("planbtn"), "Opening", async () => {
+  try { const r = await cuff({op: ME?.plan === "pro" ? "portal" : "checkout"}); location.href = r.url; }
+  catch (e) { toast(e.message, true); }
+});
+async function upgrade() { $("planbtn").click(); }
+$("changekey").onclick = async () => {
+  if (MODE === "cuff") { try { await cuff({op: "sign_out"}); } catch (e) {} signOutLocal(); setTab("cuff"); }
+  else { store.set("cuffweb.key." + prov(), null); $("key").value = ""; CONNECTED = false; renderAIBar(); resetStep2(); setTab("key"); }
+  $("setup").scrollIntoView({behavior: "smooth", block: "start"});
 };
 function apiError(status, msg) {
   if (status === 401) return "That key wasn't accepted. Check you copied all of it.";
   if (status === 403) return "That key isn't allowed to do this. " + (msg || "");
-  if (status === 429 || /credit|balance|billing/i.test(msg || "")) return "Your AI account needs credit, or is sending too much. Add credit in its billing page. " + (msg || "");
+  if (/credit|balance|billing/i.test(msg || "")) return "Your AI account needs credit. Add some on its billing page.";
+  if (status === 429) return "The AI service says you're sending too much. Wait a moment. " + (msg || "");
   if (status === 404) return "That model isn't available on your account. Pick another. " + (msg || "");
-  if (status === 400 && /credit|balance/i.test(msg || "")) return "Your AI account is out of credit. Add some in its billing page.";
   return (msg || "The AI service returned an error") + ` (${status})`;
 }
 
 /* ---------- staged edits (Suggest) and restore points (Make changes) ---------- */
+// STAGED: path -> {text, data, note} for a suggested new version (data is text or a file), or null to delete.
 const STAGED = new Map(), ORIG = new Set(), SNAPS = [];
-async function view(p) { if (STAGED.has(p)) { const v = STAGED.get(p); if (v === null) throw new Error("not found"); return v; } return await readText(p); }
+async function view(p) { if (STAGED.has(p)) { const v = STAGED.get(p); if (v === null) throw new Error("not found"); return v.text; } return await readText(p); }
 async function viewList() { const set = new Set(await FS.list()); for (const [p, v] of STAGED) v === null ? set.delete(p) : set.add(p); return [...set].sort(); }
+async function viewBlob(p) { if (STAGED.has(p)) { const v = STAGED.get(p); if (!v) throw new Error("not found"); return v.data instanceof Blob ? v.data : new Blob([v.data]); } return await FS.read(p); }
 let runSnap = null, LAST_ASK = "";
-async function realWrite(p, text) {
+async function realWrite(p, v) {
   if (!runSnap) { runSnap = {ts: Date.now(), label: "Before: " + (LAST_ASK || "AI changes").slice(0, 60), files: new Map()}; SNAPS.unshift(runSnap); }
-  if (!runSnap.files.has(p)) { let old = null; try { old = await readText(p); } catch (e) {} runSnap.files.set(p, old); }
-  if (text === null) await FS.remove(p); else await FS.write(p, text);
+  if (!runSnap.files.has(p)) runSnap.files.set(p, await readCopy(p));
+  await writeFile(p, v === null ? null : v.data);
   renderSnaps();
 }
 async function applyPaths(paths) {
   const snap = {ts: Date.now(), label: `Before applying ${paths.length} change${paths.length > 1 ? "s" : ""}`, files: new Map()};
-  for (const p of paths) { let old = null; try { old = await readText(p); } catch (e) {} snap.files.set(p, old); }
-  for (const p of paths) { const v = STAGED.get(p); if (v === null) { try { await FS.remove(p); } catch (e) {} } else await FS.write(p, v); STAGED.delete(p); ORIG.delete(p); }
-  SNAPS.unshift(snap); renderSnaps(); renderQueue(); toast("Changes applied. You can restore the point to undo.");
+  for (const p of paths) snap.files.set(p, await readCopy(p));
+  for (const p of paths) { const v = STAGED.get(p); try { await writeFile(p, v === null ? null : v.data); } catch (e) { if (v !== null) throw e; } STAGED.delete(p); ORIG.delete(p); }
+  SNAPS.unshift(snap); renderSnaps(); renderQueue(); FILES = await FS.list(); toast("Changes applied. You can restore the point to undo.");
 }
 async function restore(i) {
   const s = SNAPS[i], undo = {ts: Date.now(), label: "Undo restore", files: new Map()};
-  for (const [p, old] of s.files) {
-    let cur = null; try { cur = await readText(p); } catch (e) {} undo.files.set(p, cur);
-    if (old === null) { try { await FS.remove(p); } catch (e) {} } else await FS.write(p, old);
-  }
+  for (const [p, old] of s.files) { undo.files.set(p, await readCopy(p)); try { await writeFile(p, old); } catch (e) { if (old !== null) throw e; } }
   SNAPS.splice(i, 1); SNAPS.unshift(undo); renderSnaps(); toast("Files restored. You can undo this.");
 }
 function renderQueue() {
   const n = STAGED.size;
   $("qcount").hidden = !n; $("qcount").textContent = n;
-  if (!n) { $("queue").innerHTML = `<div class="empty"><span class="ok">${ICON.check.replace("<svg", '<svg width="16" height="16"')}</span>Nothing waiting. Suggested edits show up here.</div>`; return; }
+  if (!n) { $("queue").innerHTML = `<div class="empty"><span class="ok">${check16()}</span>Nothing waiting. Suggested edits show up here.</div>`; return; }
   $("queue").innerHTML = `<div class="item"><div class="item-title">${n} suggested change${n > 1 ? "s" : ""}</div><ul class="files">` +
     [...STAGED].map(([p, v]) => { const k = v === null ? "deleted" : ORIG.has(p) ? "modified" : "added";
-      return `<li><span class="tag ${k}">${k}</span><span class="path">${esc(p)}</span><button class="linkbtn see" data-see="${esc(p)}">View</button></li>`; }).join("") +
+      return `<li><span class="tag ${k}">${k}</span><span class="path">${esc(p)}</span>${v?.note ? `<span class="tag" title="${esc(v.note)}">rebuilt</span>` : ""}<button class="linkbtn see" data-see="${esc(p)}">View</button></li>`; }).join("") +
     `</ul><div class="actions"><button class="btn go" id="apply">Apply all</button><button class="btn" id="discard">Discard all</button></div></div>`;
   $("queue").querySelectorAll("[data-see]").forEach(b => b.onclick = () => showDiff(b.dataset.see));
-  $("apply").onclick = () => applyPaths([...STAGED.keys()]);
+  $("apply").onclick = () => applyPaths([...STAGED.keys()]).catch(e => toast(e.message, true));
   $("discard").onclick = () => { STAGED.clear(); ORIG.clear(); renderQueue(); toast("Suggested edits discarded."); };
 }
 function renderSnaps() {
   $("snaps").innerHTML = SNAPS.length ? SNAPS.slice(0, 8).map((s, i) => `<li><div style="min-width:0"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.label)}</div><div class="meta">${new Date(s.ts).toLocaleTimeString()} · ${s.files.size} file${s.files.size > 1 ? "s" : ""}</div></div><button class="btn sm" data-rs="${i}">Restore</button></li>`).join("")
     : `<li class="meta" style="color:var(--ink3)">None yet.</li>`;
-  $("snaps").querySelectorAll("[data-rs]").forEach(b => b.onclick = () => restore(+b.dataset.rs));
+  $("snaps").querySelectorAll("[data-rs]").forEach(b => b.onclick = () => restore(+b.dataset.rs).catch(e => toast(e.message, true)));
 }
 function diffLines(a, b) {
   const A = a.split("\n"), B = b.split("\n");
@@ -823,21 +1126,21 @@ let diffPath = null;
 async function showDiff(p) {
   diffPath = p; const v = STAGED.get(p); let old = ""; try { old = await readText(p); } catch (e) {}
   $("difftitle").textContent = p;
-  $("diffmeta").textContent = v === null ? "The AI wants to delete this file." : ORIG.has(p) ? "Suggested edit" : "New file";
-  const d = diffLines(old, v ?? "");
+  $("diffmeta").textContent = (v === null ? "The AI wants to delete this file." : ORIG.has(p) ? "Suggested edit" : "New file") + (v?.note ? " · " + v.note : "");
+  const d = diffLines(old, v?.text ?? "");
   $("diffbody").innerHTML = (d.before ? `<span class="h">⋯ ${d.before} unchanged line${d.before > 1 ? "s" : ""}</span>` : "")
     + d.lines.map(([k, t]) => `<span class="${k === "a" ? "a" : k === "d" ? "d" : ""}">${k === " " ? " " : k === "a" ? "+" : "−"} ${esc(t)}</span>`).join("")
     + (d.after ? `<span class="h">⋯ ${d.after} unchanged line${d.after > 1 ? "s" : ""}</span>` : "");
   $("diffdlg").showModal();
 }
 $("dclose").onclick = () => $("diffdlg").close();
-$("dyes").onclick = async () => { $("diffdlg").close(); await applyPaths([diffPath]); };
+$("dyes").onclick = async () => { $("diffdlg").close(); await applyPaths([diffPath]).catch(e => toast(e.message, true)); };
 $("dno").onclick = () => { STAGED.delete(diffPath); ORIG.delete(diffPath); $("diffdlg").close(); renderQueue(); };
 
-/* ---------- download an uploaded copy as a .zip ---------- */
+/* ---------- zip files: downloads of an uploaded copy, and Word/Excel files ---------- */
 const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
-async function zip(files) {
+async function zip(files, type = "application/zip") {
   const parts = [], cen = []; let off = 0; const enc = new TextEncoder();
   for (const [name, blob] of files) {
     const data = new Uint8Array(await blob.arrayBuffer()), nm = enc.encode(name), crc = crc32(data);
@@ -850,7 +1153,7 @@ async function zip(files) {
   }
   const csize = cen.reduce((s, x) => s + x.byteLength, 0), e = new DataView(new ArrayBuffer(22));
   e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.size, true); e.setUint16(10, files.size, true); e.setUint32(12, csize, true); e.setUint32(16, off, true);
-  return new Blob([...parts, ...cen, e.buffer], {type: "application/zip"});
+  return new Blob([...parts, ...cen, e.buffer], {type});
 }
 $("download").onclick = async () => {
   if (STAGED.size) toast("Suggested edits that aren't applied yet aren't in the download.");
@@ -862,16 +1165,36 @@ $("download").onclick = async () => {
 const TOOLS = [
   {name: "list_files", min: 1, description: "List the files in the user's folder (or a subfolder). Secrets and junk folders are hidden.",
    schema: {type: "object", properties: {path: {type: "string", description: "Subfolder, or empty for the whole folder"}}}},
-  {name: "read_file", min: 1, description: "Read a text file from the folder.", schema: {type: "object", properties: {path: {type: "string"}}, required: ["path"]}},
-  {name: "search", min: 1, description: "Find lines containing some text, across the folder's text files.",
+  {name: "read_file", min: 1, description: "Read a file. Word (.docx), Excel (.xlsx, as CSV per sheet), PowerPoint (.pptx) and PDF files come back as their text.",
+   schema: {type: "object", properties: {path: {type: "string"}}, required: ["path"]}},
+  {name: "search", min: 1, description: "Find lines containing some text, across the folder's files (including Word, Excel, PowerPoint and PDF).",
    schema: {type: "object", properties: {text: {type: "string"}, path: {type: "string", description: "Optional subfolder"}}, required: ["text"]}},
-  {name: "write_file", min: 2, description: "Create a file or replace all of its content.",
+  {name: "write_file", min: 2, description: "Create a file or replace all of it. For a .docx, write plain text: '# ' headings and '- ' bullets become Word formatting. For a .xlsx, write CSV; start a line with '## Sheet: Name' for each extra sheet. Can't write .pdf or .pptx.",
    schema: {type: "object", properties: {path: {type: "string"}, content: {type: "string"}}, required: ["path", "content"]}},
-  {name: "edit_file", min: 2, description: "Replace one exact piece of text in a file. old_text must appear exactly once.",
+  {name: "edit_file", min: 2, description: "Replace one exact piece of text in a file; old_text must appear exactly once. In .docx files the formatting is kept (stay within one paragraph). Excel files are rebuilt from the edited CSV.",
    schema: {type: "object", properties: {path: {type: "string"}, old_text: {type: "string"}, new_text: {type: "string"}}, required: ["path", "old_text", "new_text"]}},
   {name: "delete_file", min: 2, description: "Delete a file.", schema: {type: "object", properties: {path: {type: "string"}}, required: ["path"]}},
 ];
-const toolsFor = lv => FS ? TOOLS.filter(t => lv >= t.min) : [];
+const toolsFor = lv => FS && lv > 0 ? TOOLS.filter(t => lv >= t.min) : [];
+const XLSX_NOTE = "Rebuilt as a plain spreadsheet: cell formatting and formulas aren't kept.";
+async function nextVersion(p, name, args) {
+  const ext = (p.split(".").pop() || "").toLowerCase();
+  if (name === "delete_file") { await view(p); return null; }
+  if ((ext === "pdf" || ext === "pptx")) throw new Error(`Cuff can't change ${ext.toUpperCase()} files. Write a new .docx or .md file instead.`);
+  if (name === "write_file") {
+    const content = String(args.content ?? "");
+    if (ext === "docx") { const data = await makeDocx(content); return {text: await officeText(p, data), data}; }
+    if (ext === "xlsx") { const data = await makeXlsx(content); return {text: await officeText(p, data), data, note: (await FS.exists(p)) ? XLSX_NOTE : ""}; }
+    return {text: content, data: content};
+  }
+  const cur = await view(p), o = String(args.old_text ?? ""), n = String(args.new_text ?? "");
+  if (ext === "docx") { const data = await docxReplace(await viewBlob(p), o, n); return {text: await officeText(p, data), data, note: STAGED.get(p)?.note}; }
+  const count = o ? cur.split(o).length - 1 : 0;
+  if (count !== 1) throw new Error(count ? `old_text appears ${count} times; include more surrounding text` : "old_text wasn't found in the file");
+  const text = cur.replace(o, () => n);
+  if (ext === "xlsx") { const data = await makeXlsx(text); return {text: await officeText(p, data), data, note: XLSX_NOTE}; }
+  return {text, data: text};
+}
 async function runTool(name, args) {
   const t = TOOLS.find(x => x.name === name);
   if (!t) throw new Error("unknown tool");
@@ -889,36 +1212,30 @@ async function runTool(name, args) {
     const out = [];
     for (const f of (await viewList()).filter(f => !p || f.startsWith(p + "/") || f === p)) {
       let txt; try { txt = await view(f); } catch (e) { continue; }
-      txt.split("\n").forEach((line, i) => { if (out.length < 200 && line.includes(q)) out.push(`${f}:${i + 1}: ${line.slice(0, 200)}`); });
+      txt.split("\n").forEach((line, i) => { if (out.length < 200 && line.toLowerCase().includes(q.toLowerCase())) out.push(`${f}:${i + 1}: ${line.slice(0, 200)}`); });
       if (out.length >= 200) break;
     }
     return out.join("\n") || "no matches";
   }
   if (!p) throw new Error("give a file path");
-  let next;
-  if (name === "write_file") next = String(args.content ?? "");
-  else if (name === "delete_file") { await view(p); next = null; }
-  else {
-    const cur = await view(p), o = String(args.old_text ?? ""), n = String(args.new_text ?? "");
-    const count = o ? cur.split(o).length - 1 : 0;
-    if (count !== 1) throw new Error(count ? `old_text appears ${count} times; include more surrounding text` : "old_text wasn't found in the file");
-    next = cur.replace(o, () => n);
-  }
+  const next = await nextVersion(p, name, args);
   if (level === 2) {
     if (!STAGED.has(p) && await FS.exists(p)) ORIG.add(p);
     if (next === null && !ORIG.has(p)) STAGED.delete(p); else STAGED.set(p, next);
     renderQueue();
-    return `Saved as a suggestion for the user to review (${next === null ? "delete" : "edit"} ${p}). Nothing real changed yet.`;
+    return `Saved as a suggestion for the user to review (${next === null ? "delete" : "edit"} ${p}). Nothing real changed yet.${next?.note ? " Note: " + next.note : ""}`;
   }
   await realWrite(p, next);
-  return next === null ? `Deleted ${p}.` : `Wrote ${p}. A restore point was saved first.`;
+  FILES = await FS.list();
+  return (next === null ? `Deleted ${p}.` : `Wrote ${p}. A restore point was saved first.`) + (next?.note ? " Note: " + next.note : "");
 }
 
-/* ---------- talking to the AI service ---------- */
+/* ---------- talking to the AI ---------- */
 function system() {
   return `You are an AI assistant working inside Cuff AI, which controls what you may do on the user's computer.
 Access level: ${level} (${TITLES[level]}). ${PLAIN[level]}
-${FS ? `You can use tools on the folder "${FS.name}". Paths are relative to it. Some files (passwords, keys, .git, node_modules) are hidden on purpose; don't try to reach them.` : "No folder is shared, so you have no tools. If the user wants file work, tell them to choose a folder."}
+${FS ? `You can use tools on the folder "${FS.name}". Paths are relative to it. Some files (passwords, keys, .git, node_modules) are hidden on purpose; don't try to reach them.
+Word, Excel, PowerPoint and PDF files are shown to you as text. You can create Word and Excel files and edit Word text (formatting is kept), but you can't change PDF or PowerPoint files.` : "No folder is shared, so you have no tools. If the user wants file work, tell them to choose a folder."}
 ${level === 2 ? "Your edits are saved as suggestions. The user reviews and applies them, so say briefly what you changed and why." : ""}
 ${level === 1 ? "You can't change files at this level. If a change is needed, describe it and suggest raising access to Suggest edits." : ""}
 ${level === 0 ? "Access is Off: you can't see the folder. Answer from the conversation only." : ""}
@@ -926,13 +1243,20 @@ If a tool says "blocked", don't try to work around it; explain what you'd need a
 The user may not be technical. Be concise, friendly and plain.`;
 }
 async function callAI(history, signal) {
-  const p = prov(), key = $("key").value.trim() || store.get("cuffweb.key." + p) || "", model = $("model").value;
-  const tools = level > 0 ? toolsFor(level) : [];
+  const p = prov(), model = $("model").value, tools = toolsFor(level);
+  const anthropicTools = tools.map(t => ({name: t.name, description: t.description, input_schema: t.schema}));
+  if (MODE === "cuff") {
+    const j = await cuff({op: "chat", model, max_tokens: 8000, system: system(), messages: history.anthropic, tools: anthropicTools}, signal);
+    if (ME && typeof j.cost === "number") { ME.used += j.cost; renderAIBar(); }
+    history.anthropic.push({role: "assistant", content: j.content});
+    return {text: j.content.filter(b => b.type === "text").map(b => b.text).join("\n"),
+      calls: j.content.filter(b => b.type === "tool_use").map(b => ({id: b.id, name: b.name, args: b.input || {}}))};
+  }
+  const key = $("key").value.trim() || store.get("cuffweb.key." + p) || "";
   if (p === "anthropic") {
     const r = await fetch("https://api.anthropic.com/v1/messages", {method: "POST", signal,
       headers: {"content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-      body: JSON.stringify({model, max_tokens: 8000, system: system(), messages: history.anthropic,
-        ...(tools.length ? {tools: tools.map(t => ({name: t.name, description: t.description, input_schema: t.schema}))} : {})})});
+      body: JSON.stringify({model, max_tokens: 8000, system: system(), messages: history.anthropic, ...(tools.length ? {tools: anthropicTools} : {})})});
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(apiError(r.status, j?.error?.message));
     history.anthropic.push({role: "assistant", content: j.content});
@@ -965,7 +1289,7 @@ function setBusy(b) {
 }
 async function ask(text) {
   if (BUSY) return;
-  if (!CONNECTED) { toast("Connect your AI first (step 2).", true); $("key").focus(); return; }
+  if (!CONNECTED) { toast("Connect your AI first (step 2).", true); $("setup").scrollIntoView({behavior: "smooth"}); return; }
   const p = prov(); LAST_ASK = text; runSnap = null;
   addEl("msg user", `<div class="bubble">${esc(text)}</div>`);
   HIST.anthropic.push({role: "user", content: text}); HIST.openai.push({role: "user", content: text});
@@ -983,8 +1307,7 @@ async function ask(text) {
         let out, err = false;
         try { out = await runTool(c.name, c.args); } catch (e) { out = String(e.message || e); err = true; }
         const label = STEP[c.name] || c.name, what = c.args.path || c.args.text || "";
-        const blocked = err && out.startsWith("blocked");
-        addEl("tstep", `<span class="ic${err ? " denied" : ""}">${ICON[c.name] || ""}</span><span>${esc(label)} ${what ? `<code>${esc(what)}</code>` : ""}${err ? ` <span class="why">· ${esc(out.slice(0, 120))}</span>` : ""}</span>`);
+        addEl("tstep", `<span class="ic${err ? " denied" : ""}">${ICON[c.name] || ""}</span><span>${esc(label)} ${what ? `<code>${esc(what)}</code>` : ""}${err ? ` <span class="why">· ${esc(out.slice(0, 140))}</span>` : ""}</span>`);
         results.push({id: c.id, out: String(out).slice(0, 150_000), err});
       }
       addResults(HIST, p, results);
@@ -995,7 +1318,12 @@ async function ask(text) {
     think.remove();
     const H = HIST[p], last = H.at(-1);
     if (last && last.role === "assistant" && ((Array.isArray(last.content) && last.content.some(b => b.type === "tool_use")) || last.tool_calls)) H.pop();
-    addEl("errline", e.name === "AbortError" ? "Stopped." : esc(e.message || String(e)));
+    if (H.at(-1)?.role === "user" && typeof H.at(-1).content === "string" && H.at(-1).content === text && e.upgrade) H.pop();
+    const el = addEl("errline", e.name === "AbortError" ? "Stopped." : esc(e.message || String(e)));
+    if (e.upgrade && MODE === "cuff") {
+      el.insertAdjacentHTML("beforeend", ` <button class="btn go sm" style="margin-left:8px">Upgrade to Pro</button>`);
+      el.querySelector("button").onclick = upgrade;
+    }
   }
   setBusy(false); CTRL = null;
   if (STAGED.size && level === 2) toast(`${STAGED.size} suggested edit${STAGED.size > 1 ? "s" : ""} waiting for your review.`);
@@ -1014,27 +1342,45 @@ function renderStarters() {
   if ($("chatlog").querySelector(".msg")) return;
   const has = re => FILES.some(f => re.test(f));
   const s = ["What's in this folder? Give me a short tour."];
-  if (has(/\.(md|txt|docx?|rtf)$/i)) s.push("Fix spelling and grammar in my documents.", "Summarize my notes into one page.");
-  if (has(/\.(csv|tsv)$/i)) s.push("Clean up my spreadsheet (CSV) and explain what you changed.");
+  if (has(/\.pdf$/i)) s.push("Summarize my PDFs in plain language.");
+  if (has(/\.docx$/i)) s.push("Fix spelling and grammar in my Word documents.");
+  if (has(/\.xlsx$/i)) s.push("Look through my spreadsheet and tell me what stands out.");
+  if (has(/\.pptx$/i)) s.push("Write speaker notes for my presentation as a Word document.");
+  if (has(/\.(md|txt|rtf)$/i)) s.push("Summarize my notes into one page.");
+  if (has(/\.(csv|tsv)$/i)) s.push("Clean up my CSV file and explain what you changed.");
   if (has(/\.(html?|css)$/i)) s.push("Make my website look more modern.");
-  if (has(/\.(py|js|ts|jsx|tsx|java|go|rs|rb|php|cs|cpp|c)$/i)) s.push("Find bugs in my code and suggest fixes.", "Add comments that explain the tricky parts.");
-  if (!FS || FILES.length === 0) s.splice(0, s.length, "Make me a simple personal website.", "Write a to-do list app in one HTML file.", "Draft a cover letter I can edit.");
+  if (has(/\.(py|js|ts|jsx|tsx|java|go|rs|rb|php|cs|cpp|c)$/i)) s.push("Find bugs in my code and suggest fixes.");
+  if (!FS || FILES.length === 0) s.splice(0, s.length, "Make me a simple personal website.", "Draft a cover letter as a Word document.", "Make a monthly budget spreadsheet.");
   $("chatlog").innerHTML = `<p class="welcomechat">${FS ? "Try one of these, or type your own:" : "Choose a folder to let the AI work on your files, or try:"}</p>
     <div class="starters">${s.slice(0, 6).map(x => `<button class="starter">${esc(x)}</button>`).join("")}</div>`;
   $("chatlog").querySelectorAll(".starter").forEach(b => b.onclick = () => { $("input").value = b.textContent; grow(); $("input").focus(); if (CONNECTED) $("form").requestSubmit(); else toast("Connect your AI first (step 2)."); });
 }
 
 /* ---------- start ---------- */
-(function start() {
+(async function start() {
   buildDial(); drawDial();
-  const p = store.get("cuffweb.prov") || "anthropic"; $("prov").value = p; fillModels();
-  const k = store.get("cuffweb.key." + p);
-  if (k) {   // remembered key: treat as connected, and confirm quietly in the background
-    $("key").value = k; CONNECTED = true; showAIBar();
-    showConnected(p); $("s2").classList.add("done"); $("n2").innerHTML = ICON.check;
-  }
   renderQueue(); renderSnaps(); renderStarters(); chatHint(); setBusy(false);
   if (!window.showDirectoryPicker) $("pick").textContent = "Choose folder (makes a copy)…";
+  const p = store.get("cuffweb.prov") || "anthropic"; $("prov").value = p; $("keylink").href = PROVIDERS[p].key;
+  const k = store.get("cuffweb.key." + p); if (k) $("key").value = k;
+  const back = new URLSearchParams(location.search).get("billing");
+  if (back) history.replaceState(null, "", location.pathname);
+  try { STATUS = await cuff({op: "status"}); } catch (e) { STATUS = null; }
+  const signinOk = !!(STATUS && STATUS.email && STATUS.ai);
+  if (!signinOk) {
+    $("cuffoff").hidden = false; $("cuffform").hidden = true;
+    if (MODE === "cuff" && !TOKEN) MODE = "key";
+  }
+  if (STATUS?.plans) $("plantext").textContent = `Free: $${STATUS.plans.free.toFixed(2)} of AI every month, no card needed. Pro: $${STATUS.plans.pro_price}/month for ${Math.round(STATUS.plans.pro / STATUS.plans.free)}× more and every model.`;
+  if (MODE === "cuff" && TOKEN) {
+    try { ME = (await cuff({op: "me"})).me; setMode("cuff"); onConnected(); } catch (e) { setTab("cuff"); }
+  } else if (MODE === "key" && k) { setMode("key"); onConnected(); }
+  else setTab(signinOk ? "cuff" : "key");
+  if (back === "success") {
+    toast("Thanks! Turning on Pro…");
+    for (let i = 0; i < 8 && ME && ME.plan !== "pro"; i++) { await new Promise(r => setTimeout(r, 1500)); try { ME = (await cuff({op: "me"})).me; } catch (e) {} }
+    fillModels(); renderAIBar(); if (ME?.plan === "pro") toast("You're on Cuff Pro. Enjoy!");
+  } else if (back === "cancelled") toast("No change made to your plan.");
 })();
 </script>
 </body>
