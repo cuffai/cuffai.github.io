@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F3F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0F13" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cuff">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src https://unehdhdrbhkkvoripxat.supabase.co">
+<title>Cuff Remote</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#F2F3F6; --surface:#FFFFFF; --hair:rgba(20,24,33,.09);
+  --ink:#121620; --ink2:#4B5363; --ink3:#868E9C; --fill:rgba(20,24,33,.05); --fill2:rgba(20,24,33,.09);
+  --l0:#8E97A8; --l1:#16A6B8; --l2:#2EB872; --l3:#9FBF1F; --l4:#F2A516; --l5:#FA6A2A; --l6:#F2364A;
+  --accent:var(--l0); --red:#E5293D; --green:#1E9E5A; --redbg:rgba(229,41,61,.10); --greenbg:rgba(30,158,90,.11);
+  --shadow:0 1px 2px rgba(16,20,30,.06),0 8px 24px rgba(16,20,30,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D0F13; --surface:#1A1D24; --hair:rgba(255,255,255,.08);
+  --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A; --fill:rgba(255,255,255,.05); --fill2:rgba(255,255,255,.1);
+  --l0:#6E7789; --red:#FF4D5E; --green:#3DD68C; --redbg:rgba(255,77,94,.14); --greenbg:rgba(61,214,140,.13);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --bg:#0D0F13; --surface:#1A1D24; --hair:rgba(255,255,255,.08);
+  --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A; --fill:rgba(255,255,255,.05); --fill2:rgba(255,255,255,.1);
+  --l0:#6E7789; --red:#FF4D5E; --green:#3DD68C; --redbg:rgba(255,77,94,.14); --greenbg:rgba(61,214,140,.13);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.45;letter-spacing:-.01em;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;min-height:100vh;
+  background-image:radial-gradient(600px 420px at 50% -80px,color-mix(in srgb,var(--accent) 26%,transparent),transparent 72%);
+  background-repeat:no-repeat;transition:background-image .8s}
+button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none;cursor:pointer}
+.wrap{max-width:520px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:10px;padding:6px 2px 18px}
+.mark{width:28px;height:28px;border-radius:8px;flex:none;background:conic-gradient(from 225deg,var(--l1),var(--l2),var(--l3),var(--l4),var(--l5),var(--l6),var(--l1));
+  box-shadow:inset 0 0 0 6.5px var(--surface),0 1px 3px rgba(0,0,0,.15)}
+.who{min-width:0;flex:1}
+.who b{display:block;font-size:17px;font-weight:650;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{font-size:13px;color:var(--ink3)}
+.conn{display:inline-flex;align-items:center;gap:6px}
+.conn i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
+.conn.on i{background:var(--green)}
+.conn.off i{background:var(--red)}
+.iconbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink2)}
+
+.hero{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);padding:22px 20px 20px;text-align:center}
+.lvl{font-size:13px;font-weight:650;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+.big{font-size:34px;font-weight:700;letter-spacing:-.035em;margin:2px 0 4px;line-height:1.1}
+.plain{color:var(--ink2);font-size:15px;margin:0 auto;max-width:34ch;min-height:44px}
+.seg{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:18px 0 6px;padding:5px;background:var(--fill);border-radius:16px}
+.seg button{height:44px;border-radius:12px;font-weight:650;font-size:15px;color:var(--ink2);position:relative;transition:background .2s,color .2s,transform .1s}
+.seg button:active{transform:scale(.94)}
+.seg button.cur{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg button.cur::after{content:"";position:absolute;left:50%;bottom:5px;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--c)}
+.seg button.locked{opacity:.4}
+.seglbl{display:flex;justify-content:space-between;font-size:12px;color:var(--ink3);padding:0 6px}
+.note{font-size:13px;color:var(--ink3);margin:10px 0 0}
+.stop{margin-top:16px;width:100%;height:56px;border-radius:16px;background:var(--red);color:#fff;font-weight:700;font-size:17px;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--red) 35%,transparent);transition:transform .1s}
+.stop:active{transform:scale(.98)}
+.stop:disabled{opacity:.45;box-shadow:none}
+
+.card{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:16px 16px 6px;margin-top:14px}
+.card h2{font-size:17px;font-weight:650;letter-spacing:-.02em;margin:0;display:flex;align-items:center;gap:8px}
+.badge{font-size:12px;font-weight:700;background:var(--red);color:#fff;border-radius:999px;padding:1px 8px}
+.empty{color:var(--ink3);font-size:15px;padding:10px 0 12px;margin:0}
+.item{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--hair)}
+.item:first-of-type{border-top:0}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .t span{display:block;font-size:13px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{height:36px;padding:0 14px;border-radius:10px;background:var(--fill2);font-weight:600;font-size:15px;flex:none}
+.btn.go{background:var(--green);color:#fff}
+.btn.no{background:var(--redbg);color:var(--red)}
+.btn.wide{flex:1;height:44px}
+.row2{display:flex;gap:8px;padding:6px 0 12px}
+.kind{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:13px;font-weight:700;background:var(--fill);color:var(--ink2)}
+.kind.add{background:var(--greenbg);color:var(--green)}
+.kind.del{background:var(--redbg);color:var(--red)}
+.feed .item{padding:9px 0}
+.feed .item .t b{font-weight:500}
+.time{font-size:12px;color:var(--ink3);flex:none}
+
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,140%);max-width:calc(100% - 32px);
+  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:550;font-size:15px;transition:transform .35s cubic-bezier(.2,.9,.3,1);z-index:9;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+.toast.err{background:var(--red);color:#fff}
+
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:8;animation:fade .2s}
+.sheet>div{background:var(--surface);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:22px 20px max(20px,env(safe-area-inset-bottom));animation:up .3s cubic-bezier(.2,.9,.3,1)}
+.sheet h3{margin:0 0 6px;font-size:20px;letter-spacing:-.02em}
+.sheet p{margin:0 0 18px;color:var(--ink2)}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
+
+.welcome{text-align:center;padding:40px 8px}
+.welcome .mark{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;box-shadow:inset 0 0 0 15px var(--surface),0 2px 8px rgba(0,0,0,.15)}
+.welcome h1{font-size:28px;letter-spacing:-.03em;margin:0 0 8px}
+.welcome p{color:var(--ink2);margin:0 auto 12px;max-width:34ch}
+.offline{background:var(--redbg);color:var(--red);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:550;margin-bottom:12px}
+.pick{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px}
+.pick button{white-space:nowrap;padding:6px 12px;border-radius:999px;background:var(--fill);font-size:14px;font-weight:600;color:var(--ink2)}
+.pick button.cur{background:var(--ink);color:var(--bg)}
+.spin{display:inline-block;width:18px;height:18px;border-radius:50%;border:2.5px solid var(--fill2);border-top-color:var(--accent);animation:sp .8s linear infinite;vertical-align:-4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const RELAY = "https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-relay";
+const TITLES = ["Off", "Look only", "Suggest edits", "Suggest changes", "Suggest + websites", "Make changes", "Full trust"];
+const PLAIN = [
+  "The AI can't touch your computer. It can only talk.",
+  "It can read the folders you chose. It can't change anything or use the internet.",
+  "It works on a copy. Nothing real changes until you approve it.",
+  "It works on a copy and can run commands there. Nothing real changes until you approve it.",
+  "Like Suggest changes, and it can also reach the websites you allow.",
+  "It changes your folders directly. A restore point is saved first, so you can undo.",
+  "It can reach the whole computer and the internet. Everything is still logged.",
+];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const enc = new TextEncoder(), dec = new TextDecoder();
+
+/* ---------- keys: same derivation as cuff/remote.py ---------- */
+const b64e = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const b64d = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+const hex = b => Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
+async function h(label, key) { const l = enc.encode(label), m = new Uint8Array(l.length + key.length); m.set(l); m.set(key, l.length); return new Uint8Array(await crypto.subtle.digest("SHA-256", m)); }
+async function derive(key) {
+  const ch = hex(await h("cuff-ch", key));
+  return { ch, token: hex(await h("cuff-phone", key)),
+    aes: await crypto.subtle.importKey("raw", await h("cuff-enc", key), "AES-GCM", false, ["encrypt", "decrypt"]) };
+}
+async function seal(K, kind, obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name: "AES-GCM", iv, additionalData: enc.encode(K.ch + ":" + kind)}, K.aes, enc.encode(JSON.stringify(obj))));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return b64e(out);
+}
+async function unseal(K, kind, blob) {
+  const raw = b64d(blob);
+  const pt = await crypto.subtle.decrypt({name: "AES-GCM", iv: raw.slice(0, 12), additionalData: enc.encode(K.ch + ":" + kind)}, K.aes, raw.slice(12));
+  return JSON.parse(dec.decode(pt));
+}
+async function relay(body) {
+  const r = await fetch(RELAY, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body), cache: "no-store"});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.error || "Relay error " + r.status); e.status = r.status; throw e; }
+  return j;
+}
+
+/* ---------- saved pairings (this phone only) ---------- */
+function loadPairs() { try { return JSON.parse(localStorage.getItem("cuff.pairs") || "[]"); } catch (e) { return MEM.pairs; } }
+function savePairs(p) { MEM.pairs = p; try { localStorage.setItem("cuff.pairs", JSON.stringify(p)); } catch (e) {} }
+const MEM = {pairs: []};
+function takeLink() {
+  const f = new URLSearchParams(location.hash.slice(1));
+  const k = f.get("k");
+  history.replaceState(null, "", location.pathname);      // the key never stays in the address bar
+  if (!k) return null;
+  let key; try { key = b64d(k); } catch (e) { return null; }
+  if (key.length !== 32) return null;
+  let name = "My computer"; try { name = dec.decode(b64d(f.get("n") || "")) || name; } catch (e) {}
+  const pairs = loadPairs().filter(p => p.k !== k);
+  pairs.unshift({k, name, added: Date.now()});
+  savePairs(pairs);
+  return k;
+}
+
+/* ---------- state ---------- */
+let PAIRS = [], CUR = null, K = null, S = null, lastOk = 0, err = "", pending = new Map(), timer = null;
+
+function toast(msg, bad) {
+  const t = $("toast"); t.textContent = msg; t.className = "toast show" + (bad ? " err" : "");
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.className = "toast", 2800);
+}
+function who(a) { return a === "user:phone" ? "You, from phone" : a.startsWith("user") ? "You" : a === "relay" ? "Cuff" : a; }
+function ago(ts) {
+  const s = Date.now() / 1000 - ts;
+  return s < 60 ? "now" : s < 3600 ? Math.round(s / 60) + "m" : s < 86400 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d";
+}
+async function choose(k) {
+  CUR = k; S = null; err = ""; K = await derive(b64d(k)); render(); refresh();
+}
+async function refresh() {
+  clearTimeout(timer);
+  if (!K) return;
+  try {
+    const r = await relay({op: "get_state", ch: K.ch, token: K.token});
+    S = await unseal(K, "state", r.ct); err = ""; lastOk = Date.now();
+    for (const res of S.results || []) if (pending.has(res.id)) { toast(res.message, !res.ok); pending.delete(res.id); }
+  } catch (e) {
+    err = e.status === 404 ? "unpaired" : e.message;
+  }
+  render();
+  timer = setTimeout(refresh, document.hidden ? 15000 : (pending.size ? 1200 : 3000));
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+
+async function send(op, extra) {
+  const id = b64e(crypto.getRandomValues(new Uint8Array(9)));
+  try {
+    await relay({op: "send", ch: K.ch, token: K.token, ct: await seal(K, "cmd", {id, ts: Date.now(), op, ...extra})});
+    pending.set(id, Date.now()); toast("Sent to your computer…"); setTimeout(refresh, 900);
+  } catch (e) { toast(e.message, true); }
+}
+
+function confirmSheet(title, text, yes, danger) {
+  return new Promise(res => {
+    const d = document.createElement("div"); d.className = "sheet";
+    d.innerHTML = `<div role="dialog" aria-modal="true"><h3>${esc(title)}</h3><p>${esc(text)}</p>
+      <div class="row2"><button class="btn wide" data-v="0">Cancel</button><button class="btn wide ${danger ? "no" : "go"}" data-v="1">${esc(yes)}</button></div></div>`;
+    d.onclick = e => { const v = e.target.dataset && e.target.dataset.v; if (e.target === d || v !== undefined) { d.remove(); res(v === "1"); } };
+    document.body.appendChild(d);
+  });
+}
+
+async function setLevel(n) {
+  if (!S || n === S.level) return;
+  if (n > S.phone_max) { toast("Full trust can only be turned on at the computer.", true); return; }
+  if (n > S.level && !(await confirmSheet(`Raise to “${TITLES[n]}”?`, PLAIN[n], "Raise"))) return;
+  send("level", {level: n});
+}
+
+/* ---------- render ---------- */
+function render() {
+  const app = $("app");
+  if (!PAIRS.length) {
+    app.innerHTML = `<div class="welcome"><div class="mark"></div><h1>Cuff Remote</h1>
+      <p>Control the AI on your computer from your phone.</p>
+      <p>On your computer, open Cuff and click <b>Pair my phone</b>. Then scan the code with this phone's camera.</p></div>`;
+    return;
+  }
+  const name = (PAIRS.find(p => p.k === CUR) || {}).name || "My computer";
+  const stale = S && Date.now() / 1000 - S.ts > 75;
+  const status = err === "unpaired" ? ["off", "Unpaired"] : err ? ["off", "Can't connect"] : !S ? ["", "Connecting…"] : stale ? ["off", "Computer offline"] : ["on", "Connected"];
+  const lvl = S ? S.level : 0;
+  document.documentElement.style.setProperty("--accent", `var(--l${lvl})`);
+  let html = `<div class="top"><div class="mark"></div><div class="who"><b>${esc(S ? S.computer : name)}</b>
+    <span class="conn ${status[0]}"><i></i>${status[1]}${S && stale ? " · last seen " + ago(S.ts) + " ago" : ""}</span></div>
+    <button class="iconbtn" id="menu" aria-label="Paired computers">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div>`;
+  if (PAIRS.length > 1) html += `<div class="pick">${PAIRS.map(p => `<button data-k="${esc(p.k)}" class="${p.k === CUR ? "cur" : ""}">${esc(p.name)}</button>`).join("")}</div>`;
+  if (err === "unpaired") {
+    html += `<div class="offline">This computer unpaired the phone, or the pairing expired. Pair again from Cuff on the computer.</div>`;
+  } else if (err && !S) {
+    html += `<div class="offline">Can't reach Cuff's relay: ${esc(err)}. Check your connection.</div>`;
+  } else if (stale) {
+    html += `<div class="offline">Your computer hasn't checked in for a while. It may be asleep or Cuff may be closed. Commands will run when it's back.</div>`;
+  }
+  if (!S) {
+    html += err ? "" : `<div class="hero"><span class="spin"></span></div>`;
+    app.innerHTML = html; wire(); return;
+  }
+  const eff = S.effective < S.level ? `<p class="note">A folder rule limits agents to “${esc(TITLES[S.effective])}” there.</p>` : "";
+  html += `<section class="hero">
+      <div class="lvl">Level ${lvl}</div><div class="big">${esc(TITLES[lvl])}</div><p class="plain">${esc(PLAIN[lvl])}</p>
+      <div class="seg" role="radiogroup" aria-label="Access level">${TITLES.map((t, i) =>
+        `<button role="radio" aria-checked="${i === lvl}" aria-label="${esc(t)}" data-l="${i}" style="--c:var(--l${i})" class="${i === lvl ? "cur" : ""} ${i > S.phone_max && i > lvl ? "locked" : ""}">${i}</button>`).join("")}</div>
+      <div class="seglbl"><span>Off</span><span>Full trust</span></div>${eff}
+      <button class="stop" id="stop" ${lvl === 0 && !S.running.length ? "disabled" : ""}>Stop Agent</button>
+    </section>`;
+
+  const nReview = S.approvals.length + (S.staged_count ? 1 : 0);
+  html += `<section class="card"><h2>Needs your review ${nReview ? `<span class="badge">${nReview}</span>` : ""}</h2>`;
+  if (!nReview) html += `<p class="empty">Nothing waiting.</p>`;
+  for (const a of S.approvals) {
+    const d = a.detail || {};
+    const what = d.method ? `${d.method} ${d.url || d.host || ""}` : (d.url || d.host || d.cmd || a.kind);
+    html += `<div class="item"><div class="kind">↗</div><div class="t"><b>${esc(what)}</b><span>Wants to send data · ${esc(a.kind)}</span></div>
+      <button class="btn no" data-deny="${esc(a.id)}">Deny</button><button class="btn go" data-ok="${esc(a.id)}">Allow</button></div>`;
+  }
+  if (S.staged_count) {
+    for (const c of S.staged.slice(0, 6)) {
+      const k = c.kind === "added" || c.kind === "new" ? "add" : c.kind === "deleted" ? "del" : "";
+      html += `<div class="item"><div class="kind ${k}">${k === "add" ? "+" : k === "del" ? "−" : "~"}</div><div class="t"><b>${esc(c.path)}</b><span>${esc(c.scope.split(/[\\/]/).filter(Boolean).pop() || c.scope)} · ${esc(c.kind)}</span></div></div>`;
+    }
+    if (S.staged_count > 6) html += `<p class="empty">and ${S.staged_count - 6} more</p>`;
+    html += `<div class="row2"><button class="btn wide no" id="discard">Discard</button><button class="btn wide go" id="apply">Apply ${S.staged_count} change${S.staged_count > 1 ? "s" : ""}</button></div>`;
+  }
+  html += `</section>`;
+
+  html += `<section class="card feed"><h2>Activity</h2>`;
+  html += S.log.length ? S.log.slice().reverse().slice(0, 12).map(e =>
+    `<div class="item"><div class="t"><b>${esc(e.action.replace(/_/g, " "))} ${esc(e.path ? "· " + e.path : "")}</b><span>${esc(who(e.actor))} · ${esc(e.result)}</span></div><span class="time">${ago(e.ts)}</span></div>`).join("")
+    : `<p class="empty">No activity yet.</p>`;
+  html += `</section>`;
+
+  if (S.snapshots.length) {
+    html += `<section class="card"><h2>Restore points</h2>` + S.snapshots.slice(0, 5).map(s =>
+      `<div class="item"><div class="t"><b>${esc(s.undo ? "Undo last restore" : s.reason)}</b><span>${new Date(s.ts * 1000).toLocaleString()}</span></div><button class="btn" data-rb="${esc(s.id)}">Restore</button></div>`).join("") + `</section>`;
+  }
+  app.innerHTML = html; wire();
+}
+
+function wire() {
+  const app = $("app");
+  app.querySelectorAll("[data-l]").forEach(b => b.onclick = () => setLevel(+b.dataset.l));
+  app.querySelectorAll("[data-k]").forEach(b => b.onclick = () => choose(b.dataset.k));
+  app.querySelectorAll("[data-ok]").forEach(b => b.onclick = () => send("approve", {id: b.dataset.ok}));
+  app.querySelectorAll("[data-deny]").forEach(b => b.onclick = () => send("deny", {id: b.dataset.deny}));
+  app.querySelectorAll("[data-rb]").forEach(b => b.onclick = async () => {
+    if (await confirmSheet("Restore your files?", "Files go back to how they were at this point. You can undo this restore afterwards.", "Restore")) send("rollback", {id: b.dataset.rb});
+  });
+  const st = $("stop"); if (st) st.onclick = () => send("kill");
+  const ap = $("apply"); if (ap) ap.onclick = async () => { if (await confirmSheet("Apply the changes?", "Your real files are updated. A restore point is saved first, so you can undo.", "Apply")) send("apply"); };
+  const di = $("discard"); if (di) di.onclick = async () => { if (await confirmSheet("Discard the changes?", "The AI's proposed edits are thrown away. Your files stay as they are.", "Discard", true)) send("discard"); };
+  const m = $("menu"); if (m) m.onclick = async () => {
+    const name = (PAIRS.find(p => p.k === CUR) || {}).name || "this computer";
+    if (await confirmSheet("Remove this computer?", `This phone forgets ${name}. To control it again, scan a new code from Cuff.`, "Remove", true)) {
+      PAIRS = PAIRS.filter(p => p.k !== CUR); savePairs(PAIRS); S = null; K = null;
+      if (PAIRS.length) choose(PAIRS[0].k); else { CUR = null; render(); }
+    }
+  };
+}
+
+window.addEventListener("hashchange", async () => {     // scanned another code while the page was open
+  const k = takeLink(); if (!k) return;
+  PAIRS = loadPairs(); await choose(k); toast("Paired with " + PAIRS[0].name);
+});
+(async () => {
+  if (!window.crypto || !crypto.subtle) { $("app").innerHTML = `<div class="welcome"><h1>Cuff Remote</h1><p>Open this page over https in Safari or Chrome.</p></div>`; return; }
+  const fresh = takeLink();
+  PAIRS = loadPairs();
+  if (fresh && !PAIRS.length) PAIRS = MEM.pairs;
+  if (PAIRS.length) { await choose(fresh || PAIRS[0].k); if (fresh) toast("Paired with " + PAIRS[0].name); }
+  else render();
+})();
+</script>
+</body>
+</html>
