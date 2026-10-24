@@ -190,7 +190,7 @@ dialog h3{margin:0 0 4px;font-size:18px;font-family:var(--mono);word-break:break
       <label class="lbl" for="key">API key</label>
       <input class="inp" id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
       <label class="chk"><input type="checkbox" id="remember"> Remember on this device</label>
-      <p class="note">Your key goes straight from this page to the AI service. Cuff has no server, and usage is billed to your account. <a id="keylink" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></p>
+      <p class="note">Your key goes straight from this page to the AI service. Cuff has no server, and usage is billed to your account. <a id="keylink" href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">Get a key</a></p>
     </section>
   </aside>
 
@@ -487,7 +487,7 @@ async function runTool(name, args) {
 
 /* ---------- talking to the AI service ---------- */
 const PROVIDERS = {
-  anthropic: {models: ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"], key: "https://console.anthropic.com/settings/keys"},
+  anthropic: {models: ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"], key: "https://platform.claude.com/settings/keys"},
   openai: {models: ["gpt-5", "gpt-5-mini"], key: "https://platform.openai.com/api-keys"},
 };
 function system() {
