@@ -426,18 +426,18 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
       </div>
       <div class="steprow" id="s2">
         <div class="num" id="n2">2</div>
-        <div><h3>Connect your AI</h3><p>Sign in for free AI each month, or use your own key.</p>
+        <div><h3>Connect your AI</h3><p>Use Cuff Pro (no key needed), or your own key for free.</p>
           <div id="s2done" hidden></div>
           <div id="s2body">
-            <div class="seg2" role="tablist"><button id="tabcuff" role="tab" class="on">Sign in · free AI included</button><button id="tabkey" role="tab">Use my own key</button></div>
+            <div class="seg2" role="tablist"><button id="tabcuff" role="tab" class="on">Cuff Pro · no key needed</button><button id="tabkey" role="tab">My own key · free</button></div>
             <div id="paneCuff">
               <div id="cuffform">
                 <div class="keyrow"><input id="email" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email"><button class="btn go" id="sendcode">Email me a code</button></div>
                 <div class="keyrow" id="coderow" hidden><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="Code from the email" class="codein"><button class="btn go" id="verify">Sign in</button></div>
                 <p class="keymsg" id="cuffmsg"></p>
-                <p class="small" id="plantext">Free: $0.50 of AI every month, no card needed. Pro: $12/month for 12× more and every model.</p>
+                <p class="small" id="plantext">Cuff Pro: $12/month, with $6 of AI each month on every Claude model. No key needed. Using your own key is free.</p>
               </div>
-              <p class="small" id="cuffoff" hidden>Signing in with Cuff is coming very soon. For now, use your own key.</p>
+              <p class="small" id="cuffoff" hidden>Cuff Pro is coming very soon. For now, use your own key (free).</p>
             </div>
             <div id="paneKey" hidden>
               <div class="keyrow">
@@ -979,6 +979,7 @@ $("verify").onclick = () => busyBtn($("verify"), "Signing in", async () => {
   try {
     const r = await cuff({op: "verify_code", email: $("email").value.trim(), code: $("code").value});
     TOKEN = r.token; ME = r.me; store.set("cuffweb.token", TOKEN); setMode("cuff"); onConnected();
+    if (ME.plan !== "pro") toast("Signed in. Upgrade to Pro to use Cuff's AI, or switch to your own key.");
   } catch (e) { shake($("code"), $("cuffmsg"), e.message); }
 });
 
@@ -1009,7 +1010,7 @@ $("prov").onchange = () => { $("key").value = store.get("cuffweb.key." + $("prov
 function setMode(m) { MODE = m; store.set("cuffweb.mode", m); fillModels(); }
 function fillModels() {
   const list = MODE === "cuff" ? CUFF_MODELS : PROVIDERS[prov()].models;
-  const allowed = MODE === "cuff" && ME ? ME.models : null;
+  const allowed = MODE === "cuff" && ME?.plan === "pro" ? ME.models : null;
   $("model").innerHTML = list.map(([id, label]) => {
     const locked = allowed && !allowed.includes(id);
     return `<option value="${id}"${locked ? " disabled" : ""}>${esc(label)}${locked ? " · Pro" : ""}</option>`;
@@ -1037,8 +1038,11 @@ function renderAIBar() {
   $("aibar").hidden = !CONNECTED;
   if (!CONNECTED) return;
   if (MODE === "cuff" && ME) {
-    const pct = Math.min(100, Math.round(100 * ME.used / ME.limit));
-    $("aiwho").innerHTML = `<b>Cuff ${ME.plan === "pro" ? "Pro" : "Free"}</b><span class="meter" title="${pct}% of this month's AI used"><i style="width:${pct}%;background:${pct > 85 ? "var(--red)" : "var(--accent)"}"></i></span><span>${pct}% of this month's AI used</span>`;
+    const pct = ME.limit ? Math.min(100, Math.round(100 * ME.used / ME.limit)) : 0;
+    $("aiwho").innerHTML = ME.plan === "pro" && ME.limit
+      ? `<b>Cuff Pro</b><span class="meter" title="${pct}% of this period's AI used"><i style="width:${pct}%;background:${pct > 85 ? "var(--red)" : "var(--accent)"}"></i></span><span>${pct}% of this period's AI used</span>`
+      : ME.plan === "pro" ? `<b>Cuff Pro</b><span>Waiting for your payment to clear…</span>`
+      : `<b>Signed in</b><span>Cuff's AI comes with Pro. Upgrade, or use your own key for free.</span>`;
     $("planbtn").hidden = false; $("planbtn").textContent = ME.plan === "pro" ? "Manage plan" : "Upgrade";
     $("planbtn").className = ME.plan === "pro" ? "linkbtn" : "btn go sm";
     $("changekey").textContent = "Sign out";
@@ -1371,15 +1375,15 @@ function renderStarters() {
     $("cuffoff").hidden = false; $("cuffform").hidden = true;
     if (MODE === "cuff" && !TOKEN) MODE = "key";
   }
-  if (STATUS?.plans) $("plantext").textContent = `Free: $${STATUS.plans.free.toFixed(2)} of AI every month, no card needed. Pro: $${STATUS.plans.pro_price}/month for ${Math.round(STATUS.plans.pro / STATUS.plans.free)}× more and every model.`;
+  if (STATUS?.plans) $("plantext").textContent = `Cuff Pro: $${STATUS.plans.pro_price}/month, with $${STATUS.plans.pro} of AI each month on every Claude model. No key needed. Using your own key is free.`;
   if (MODE === "cuff" && TOKEN) {
     try { ME = (await cuff({op: "me"})).me; setMode("cuff"); onConnected(); } catch (e) { setTab("cuff"); }
   } else if (MODE === "key" && k) { setMode("key"); onConnected(); }
   else setTab(signinOk ? "cuff" : "key");
   if (back === "success") {
     toast("Thanks! Turning on Pro…");
-    for (let i = 0; i < 8 && ME && ME.plan !== "pro"; i++) { await new Promise(r => setTimeout(r, 1500)); try { ME = (await cuff({op: "me"})).me; } catch (e) {} }
-    fillModels(); renderAIBar(); if (ME?.plan === "pro") toast("You're on Cuff Pro. Enjoy!");
+    for (let i = 0; i < 10 && ME && !(ME.plan === "pro" && ME.limit); i++) { await new Promise(r => setTimeout(r, 1500)); try { ME = (await cuff({op: "me"})).me; } catch (e) {} }
+    fillModels(); renderAIBar(); if (ME?.plan === "pro" && ME.limit) toast("You're on Cuff Pro. Enjoy!");
   } else if (back === "cancelled") toast("No change made to your plan.");
 })();
 </script>

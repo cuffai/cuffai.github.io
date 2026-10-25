@@ -67,7 +67,7 @@ h1 span{background:linear-gradient(90deg,var(--l1),var(--l2) 40%,var(--l4) 75%,v
 section{padding:72px 0;border-top:1px solid var(--hair)}
 h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.035em;line-height:1.08;margin:0 0 14px;font-weight:720}
 .sub{color:var(--ink2);font-size:19px;max-width:52ch;margin:0 0 40px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
 .card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);padding:26px}
 .card h3{font-size:19px;letter-spacing:-.02em;margin:14px 0 6px}
 .card p{margin:0;color:var(--ink2);font-size:16px}
@@ -167,14 +167,12 @@ footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid
 
 <section id="pricing"><div class="wrap">
   <h2>Simple pricing.</h2>
-  <p class="sub">The desktop app is free. In the browser, sign in to use Cuff's AI, or bring your own key for free.</p>
+  <p class="sub">Everything is free with your own AI key. Pro adds Cuff's AI, so you don't need one.</p>
   <div class="grid">
     <div class="card"><h3 style="margin-top:0">Free</h3><p style="font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0">$0</p>
-      <p>$0.50 of AI every month: plenty for dozens of small tasks with Haiku. Haiku and Sonnet models. No card needed.</p></div>
+      <p>The desktop app, the phone remote, and Cuff AI Web with your own Claude or OpenAI key. You pay the AI company directly for what you use.</p></div>
     <div class="card" style="outline:2px solid var(--l2)"><h3 style="margin-top:0">Pro</h3><p style="font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0">$12<span style="font-size:16px;color:var(--ink3);font-weight:550">/month</span></p>
-      <p>12× more AI every month, every Claude model including Opus, longer answers. Cancel any time.</p></div>
-    <div class="card"><h3 style="margin-top:0">Your own key</h3><p style="font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0">$0</p>
-      <p>Use your Claude or OpenAI key. Pay the AI company directly for what you use, with no Cuff limits.</p></div>
+      <p>No key needed: $6 of AI every month in Cuff AI Web, on every Claude model including Opus. Cancel any time.</p></div>
   </div>
   <p class="small" style="margin-top:18px"><a href="app/">Open Cuff AI Web</a></p>
 </div></section>
