@@ -287,7 +287,8 @@ function render() {
   for (const a of S.approvals) {
     const d = a.detail || {};
     const what = d.method ? `${d.method} ${d.url || d.host || ""}` : (d.url || d.host || d.cmd || a.kind);
-    html += `<div class="item"><div class="kind">↗</div><div class="t"><b>${esc(what)}</b><span>Wants to send data · ${esc(a.kind)}</span></div>
+    const why = a.kind === "site" ? `Protected site · use it for ${d.minutes || 10} min` : d.protected ? "Protected site · this one request" : "Wants to send data";
+    html += `<div class="item"><div class="kind"${d.protected ? ' style="background:var(--redbg);color:var(--red)"' : ""}>${d.protected ? "🔒" : "↗"}</div><div class="t"><b>${esc(what)}</b><span>${esc(why)} · ${esc(a.actor || "")}</span></div>
       <button class="btn no" data-deny="${esc(a.id)}">Deny</button><button class="btn go" data-ok="${esc(a.id)}">Allow</button></div>`;
   }
   if (S.staged_count) {
