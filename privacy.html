@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuff AI Privacy</title>
+<meta name="description" content="What Cuff AI's apps and Chrome extension collect, keep and share.">
+<style>
+:root{--bg:#F5F6F8;--surface:#FFFFFF;--hair:rgba(20,24,33,.09);--ink:#0F131B;--ink2:#4B5363;--ink3:#6E7684;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0B0D11;--surface:#171A21;--hair:rgba(255,255,255,.08);--ink:#F3F5F8;--ink2:#AAB2C0;--ink3:#8790A0;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:680px;margin:0 auto;padding-block:48px 72px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1{font-size:34px;letter-spacing:-.03em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:19px;letter-spacing:-.01em;margin:36px 0 8px}
+p,li{color:var(--ink2)}
+.meta{color:var(--ink3);font-size:14px}
+ul{padding-left:20px}
+.back{font-weight:600;text-decoration:none;font-size:15px}
+</style>
+</head>
+<body>
+<main>
+<p><a class="back" href="./">← Cuff AI</a></p>
+<h1>Privacy</h1>
+<p class="meta">Applies to the Cuff AI desktop app, Cuff AI Web, the phone remote and the Cuff AI Chrome extension. Last updated November 2, 2026.</p>
+
+<h2>The short version</h2>
+<p>Cuff works on your device. It doesn't sell data, show ads or track you across sites. What it records about AI agents stays on your computer unless you choose to sync it to your phone, and that sync is end-to-end encrypted.</p>
+
+<h2>The Chrome extension</h2>
+<ul>
+<li><b>What it looks at:</b> whether a tab is being controlled by another program, the web addresses an AI-controlled tab loads or sends to, text you paste into AI chat sites or AI-controlled tabs (only to check for keys and private keys), and the list of your other extensions and their permissions.</li>
+<li><b>What it keeps:</b> your dial setting, your protected sites, your sign-in (if you sign in) and an activity log of what it allowed or stopped. All of it is stored in your browser.</li>
+<li><b>What leaves your browser:</b> nothing, unless you link the Cuff desktop app (the activity log and approval requests go to that app on the same computer) or sign in (your email address goes to Cuff's account service to send a sign-in code and check your plan).</li>
+<li>It never sends page contents, your browsing history, pasted text or keys anywhere.</li>
+</ul>
+
+<h2>The desktop app and phone remote</h2>
+<ul>
+<li>Your settings, approvals and activity log are files on your computer.</li>
+<li>If you pair a phone, the computer and phone exchange status and commands through Cuff's relay. Everything is encrypted with a key only your devices have; the relay stores ciphertext and deletes it on a schedule.</li>
+<li>Agent scan reads programs, startup items and files on your computer to find AI agents. Its results stay on your computer. Keys it finds are shown partly hidden and never sent anywhere.</li>
+</ul>
+
+<h2>Accounts and payments</h2>
+<ul>
+<li>A Cuff account is your email address, your plan and your AI usage for the current billing period.</li>
+<li>Payments are handled by Stripe. Cuff never sees your card number.</li>
+<li>If you use Cuff's AI (Pro), your prompts go to the AI provider to be answered and aren't stored by Cuff after the answer.</li>
+</ul>
+
+<h2>Your choices</h2>
+<p>You can clear the extension's activity from its popup, unlink the desktop app with <code>cuff chrome disconnect</code>, sign out at any time, and ask for your account to be deleted by contacting us through the website.</p>
+</main>
+</body>
+</html>
