@@ -99,6 +99,12 @@ input[type=checkbox]{min-height:auto;accent-color:var(--accent);width:16px;heigh
 .results button:hover,.results button.on{background:var(--hover)}
 .results .none{padding:14px 10px;color:var(--ink3)}
 .topactions{display:flex;align-items:center;gap:6px}
+.planpill{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--accent-line);background:var(--accent-soft);
+  color:var(--ink);font-weight:600;font-size:13px;text-decoration:none;white-space:nowrap;margin-right:4px}
+.planpill span{color:var(--ink2);font-weight:500}
+.planintro{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin:10px 0 4px;font-size:14px;color:var(--ink2)}
+.planintro b{color:var(--ink)}
+@media (max-width:560px){.planpill span{display:none}}
 .iconbtn{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-ctl);border:0;background:none;color:var(--ink2);cursor:pointer}
 .iconbtn:hover{background:var(--hover);color:var(--ink)}
 .avatarbtn{border:0;padding:0;background:none;cursor:pointer;border-radius:50%}

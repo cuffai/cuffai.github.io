@@ -114,7 +114,7 @@ footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid
   .hero,.phone{grid-template-columns:1fr}
   .grid,.dl{grid-template-columns:1fr}
   .levels{grid-template-columns:1fr 1fr}
-  nav a.l{display:none}
+  nav a.l{display:none} nav a.l.keep{display:inline;margin-left:14px}
   .hero{padding-top:24px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -123,7 +123,7 @@ footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid
 <body>
 <div class="wrap">
   <nav><div class="mark"></div><span class="brand">Cuff AI</span><span class="sp"></span>
-    <a class="l" href="#how">How it works</a><a class="l" href="#phone">Phone remote</a><a class="l" href="app/">Use in browser</a><a class="l" href="#pricing">Pricing</a><a class="l" href="#download">Download</a></nav>
+    <a class="l" href="#how">How it works</a><a class="l" href="#phone">Phone remote</a><a class="l" href="app/">Use in browser</a><a class="l keep" href="pricing.html">Pricing</a><a class="l keep" href="#download">Download</a></nav>
 
   <div class="hero">
     <div>
@@ -217,6 +217,7 @@ footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid
   </div>
   <p class="small"><b>Early access:</b> every organisation gets Team free while company billing is being set up. Admins get an email 30 days before anything is charged.
     <a href="console/">Open the console</a></p>
+  <p class="cta" style="margin-top:22px"><a class="btn" href="pricing.html">See full pricing</a><a class="btn sec" href="app/?plan=pro">Get Pro</a><a class="btn sec" href="console/?plan=team&amp;billing=yearly">Start Team</a></p>
 </div></section>
 
 <section id="download"><div class="wrap">

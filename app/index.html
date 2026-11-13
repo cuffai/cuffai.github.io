@@ -184,6 +184,7 @@ dialog[open]{animation:pop .3s cubic-bezier(.2,.9,.3,1.2)}
 dialog .warnicon{width:48px;height:48px;border-radius:14px;background:var(--redbg);color:var(--red);display:grid;place-items:center;margin-bottom:14px}
 dialog h2{margin:0 0 8px;font-size:21px;letter-spacing:-.02em}
 dialog p{color:var(--ink2);margin:0}
+dialog .sub{color:var(--ink3);font-size:13.5px}
 dialog .actions{margin-top:22px;justify-content:flex-end}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -196,6 +197,12 @@ dialog .actions{margin-top:22px;justify-content:flex-end}
 }
 
 /* ---------- your AI card ---------- */
+.planchip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--hair);background:var(--surface);
+  color:var(--ink2);font-weight:600;font-size:13px;cursor:pointer}
+.planchip:hover{color:var(--ink)}
+.planchip.pro{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--l1),var(--l2))}
+.acctrow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--hair)}
+.acctlist{margin:14px 0 0;padding-left:18px;color:var(--ink2);font-size:14.5px;display:grid;gap:4px}
 .linkbtn{border:0;background:none;color:var(--l1);font-weight:600;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:8px}
 .linkbtn:hover{background:var(--fill)}
 .airow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -295,10 +302,33 @@ dialog .actions{margin-top:22px;justify-content:flex-end}
 .bhint.bad{color:var(--red)!important}
 .sel2.wide{width:100%;margin-top:6px}
 
+.scanwatch{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink2)}
+.scanlist{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:10px}
+.scanitem{padding:14px 16px;border-radius:14px;background:var(--fill);min-width:0}
+.scanhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.scanitem .aimeta{margin:6px 0 0;overflow-wrap:anywhere}
+.scanitem details{margin-top:8px;font-size:14px;color:var(--ink2)} .scanitem summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.scanitem ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.scanacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.scanmore{margin-top:14px} .scanmore>summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink2)}
+.tag.check{background:color-mix(in srgb,var(--l4) 18%,transparent);color:color-mix(in srgb,var(--l4) 70%,var(--ink))}
+.guard{margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
+.guardrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.guardrow+.guardrow{margin-top:10px}
+.switch{position:relative;width:46px;height:28px;flex:none;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:999px;background:var(--fill2);transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.switch input:checked+span{background:var(--green)}
+.switch input:checked+span::after{transform:translateX(18px)}
+.switch input:focus-visible+span{outline:3px solid color-mix(in srgb,var(--l1) 60%,transparent);outline-offset:2px}
+
 /* ---------- web app additions ---------- */
 textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .brand{white-space:nowrap}
 .getapp{white-space:nowrap}
+.getapp.plan{font-weight:700;color:var(--ink2)}
+.getapp.plan.pro{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--l1),var(--l2))}
 @media (max-width:520px){ .topbar .state{display:none} .webtag{display:none} }
 .webtag{font-size:12px;font-weight:650;color:var(--ink3);background:var(--fill2);padding:2px 8px;border-radius:999px;margin-left:2px;letter-spacing:0}
 .topbar .right{display:flex;align-items:center;gap:10px;margin-left:auto}
@@ -393,6 +423,8 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
     <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="mark" aria-hidden="true"></span>Cuff AI<span class="webtag">Web</span></a>
     <div class="right">
       <div class="state" id="state"><span class="dot"></span><span id="statetext">Ready</span></div>
+      <a class="getapp plan" id="planchip" href="../pricing.html" title="Plans and pricing">Free</a>
+      <a class="getapp" href="../pricing.html">Pricing</a>
       <a class="getapp" href="../#download">Get the app</a>
     </div>
   </header>
@@ -979,6 +1011,7 @@ $("verify").onclick = () => busyBtn($("verify"), "Signing in", async () => {
   try {
     const r = await cuff({op: "verify_code", email: $("email").value.trim(), code: $("code").value});
     TOKEN = r.token; ME = r.me; store.set("cuffweb.token", TOKEN); setMode("cuff"); onConnected();
+    if (await followIntent()) return;
     if (ME.plan !== "pro") toast("Signed in. Upgrade to Pro to use Cuff's AI, or switch to your own key.");
   } catch (e) { shake($("code"), $("cuffmsg"), e.message); }
 });
@@ -1035,6 +1068,7 @@ function resetStep2() {
   $("coderow").hidden = true; $("cuffmsg").textContent = ""; $("keymsg").textContent = ""; maybeFinishSetup();
 }
 function renderAIBar() {
+  renderPlanChip();
   $("aibar").hidden = !CONNECTED;
   if (!CONNECTED) return;
   if (MODE === "cuff" && ME) {
@@ -1056,6 +1090,28 @@ $("planbtn").onclick = () => busyBtn($("planbtn"), "Opening", async () => {
   catch (e) { toast(e.message, true); }
 });
 async function upgrade() { $("planbtn").click(); }
+
+// came from the pricing page (?plan=pro) or the desktop app (?manage=1): sign in, then straight to Stripe;
+// Stripe sends you back here (?billing=success) with Pro turned on
+let INTENT = null;
+async function followIntent() {
+  if (!INTENT) return false;
+  if (!TOKEN || !ME) {
+    setTab("cuff"); $("email").focus();
+    toast(INTENT === "pro" ? "Sign in with your email to get Pro. Checkout opens right after." : "Sign in with your email to manage your plan.");
+    return false;
+  }
+  const want = INTENT; INTENT = null; store.set("cuffweb.intent", null);
+  if (want === "pro" && ME.plan === "pro") { toast("You're already on Cuff Pro."); return true; }
+  toast(want === "pro" ? "Opening secure checkout…" : "Opening your billing page…");
+  try { const r = await cuff({op: ME.plan === "pro" ? "portal" : "checkout"}); location.href = r.url; return true; }
+  catch (e) { toast(e.message, true); return false; }
+}
+function renderPlanChip() {
+  const pro = ME?.plan === "pro", c = $("planchip");
+  c.textContent = pro ? "Pro" : "Free"; c.classList.toggle("pro", pro);
+  c.title = pro ? "Cuff Pro: see plans" : "Free plan: see plans and pricing";
+}
 $("changekey").onclick = async () => {
   if (MODE === "cuff") { try { await cuff({op: "sign_out"}); } catch (e) {} signOutLocal(); setTab("cuff"); }
   else { store.set("cuffweb.key." + prov(), null); $("key").value = ""; CONNECTED = false; renderAIBar(); resetStep2(); setTab("key"); }
@@ -1367,8 +1423,11 @@ function renderStarters() {
   if (!window.showDirectoryPicker) $("pick").textContent = "Choose folder (makes a copy)…";
   const p = store.get("cuffweb.prov") || "anthropic"; $("prov").value = p; $("keylink").href = PROVIDERS[p].key;
   const k = store.get("cuffweb.key." + p); if (k) $("key").value = k;
-  const back = new URLSearchParams(location.search).get("billing");
-  if (back) history.replaceState(null, "", location.pathname);
+  const qs = new URLSearchParams(location.search), back = qs.get("billing");
+  INTENT = qs.get("plan") === "pro" ? "pro" : qs.get("manage") ? "manage" : store.get("cuffweb.intent");
+  if (INTENT) store.set("cuffweb.intent", INTENT);
+  if (back || qs.has("plan") || qs.has("manage")) history.replaceState(null, "", location.pathname);
+  if (back) { INTENT = null; store.set("cuffweb.intent", null); }
   try { STATUS = await cuff({op: "status"}); } catch (e) { STATUS = null; }
   const signinOk = !!(STATUS && STATUS.email && STATUS.ai);
   if (!signinOk) {
@@ -1380,6 +1439,8 @@ function renderStarters() {
     try { ME = (await cuff({op: "me"})).me; setMode("cuff"); onConnected(); } catch (e) { setTab("cuff"); }
   } else if (MODE === "key" && k) { setMode("key"); onConnected(); }
   else setTab(signinOk ? "cuff" : "key");
+  renderPlanChip();
+  if (INTENT) await followIntent();
   if (back === "success") {
     toast("Thanks! Turning on Pro…");
     for (let i = 0; i < 10 && ME && !(ME.plan === "pro" && ME.limit); i++) { await new Promise(r => setTimeout(r, 1500)); try { ME = (await cuff({op: "me"})).me; } catch (e) {} }

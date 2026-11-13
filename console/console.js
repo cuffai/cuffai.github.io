@@ -231,6 +231,24 @@ const meMenu = (open) => { $("memenu").hidden = !open; $("mebtn").setAttribute("
 $("mebtn").onclick = (e) => { e.stopPropagation(); meMenu($("memenu").hidden); };
 document.addEventListener("click", (e) => { if (!$("memenu").hidden && !$("memenu").contains(e.target)) meMenu(false); if (!$("gresults").hidden && !e.target.closest(".search")) $("gresults").hidden = true; });
 $("menusettings").onclick = () => { meMenu(false); go("settings"); };
+$("menupricing").onclick = () => { meMenu(false); window.open("../pricing.html?for=companies", "_blank", "noopener"); };
+
+// came from the pricing page with a plan picked (?plan=team&billing=yearly): remember it through sign-in
+const PLAN_NAMES = { starter: "Starter", team: "Team", business: "Business", enterprise: "Enterprise" };
+(function () {
+  const p = qs.get("plan");
+  if (p && PLAN_NAMES[p]) { store.set("cuffconsole.plan", JSON.stringify({ plan: p, billing: qs.get("billing") === "monthly" ? "monthly" : "yearly" }));
+    qs.delete("plan"); qs.delete("billing"); history.replaceState(null, "", location.pathname + (qs.toString() ? "?" + qs : "") + location.hash); }
+})();
+const picked = () => { try { return JSON.parse(store.get("cuffconsole.plan") || "null"); } catch { return null; } };
+function planIntro() {
+  const p = picked(); if (!p) return "";
+  const name = PLAN_NAMES[p.plan];
+  const more = p.plan === "starter" ? "It's free for up to 3 people."
+    : p.plan === "team" ? "Team is free during early access. You'll get an email 30 days before anything is charged."
+    : `${name} features arrive as they're released. Until then you get Team, free during early access.`;
+  return `<div class="planintro"><b>You picked ${esc(name)}.</b> ${more} ${ME?.orgs?.length ? "Open your organisation, or create a new one below." : "Create your organisation below to start."}</div>`;
+}
 $("menuorg").onclick = () => { meMenu(false); $("orgswitch").click(); };
 
 // ---- organisations ---------------------------------------------------------------------------------------------------
@@ -245,12 +263,13 @@ async function start() {
   }
   const last = store.get("cuffconsole.org");
   if (last && ME.orgs.some((o) => o.org_id === last)) return openOrg(last);
-  if (ME.orgs.length === 1 && !inv) return openOrg(ME.orgs[0].org_id);
+  if (ME.orgs.length === 1 && !inv && !picked()) return openOrg(ME.orgs[0].org_id);
   pickOrg();
 }
 
 function pickOrg() {
   closeDrawer(); show("orgs");
+  $("planintro").innerHTML = planIntro();
   $("orglist").innerHTML = ME.orgs.length ? ME.orgs.map((o) => `<li><button data-org="${esc(o.org_id)}"><span><b>${esc(o.name)}</b>
     <span class="sub">${esc(ROLES[o.role] || o.role)}</span></span><span class="muted">Open</span></button></li>`).join("")
     : `<li class="muted">You aren't in an organisation yet. Create one below, or open the invitation link your administrator sent you.</li>`;
@@ -261,7 +280,12 @@ function pickOrg() {
 $("neworg").onsubmit = async (e) => {
   e.preventDefault(); $("orgerr").textContent = "";
   const b = e.submitter; b.disabled = true;
-  try { const r = await cp("org_create", { name: $("orgname").value.trim() }); ME = await cp("me"); $("orgname").value = ""; openOrg(r.org_id); }
+  try {
+    const r = await cp("org_create", { name: $("orgname").value.trim() }); ME = await cp("me"); $("orgname").value = "";
+    const p = picked(); store.set("cuffconsole.plan", null);
+    await openOrg(r.org_id);
+    toast(p && p.plan !== "starter" ? "Your organisation is ready, on Team, free during early access." : "Your organisation is ready.");
+  }
   catch (er) { $("orgerr").textContent = er.message; } finally { b.disabled = false; }
 };
 $("orgswitch").onclick = async () => { ORG = null; store.set("cuffconsole.org", null); try { ME = await cp("me"); } catch { /* shown */ } pickOrg(); };
@@ -271,6 +295,7 @@ async function openOrg(id) {
   store.set("cuffconsole.org", id);
   $("orgname2").textContent = ORG.name; $("myrole").textContent = ROLES[ORG.me.role]; $("whoami").textContent = ME.email;
   $("myrole2").textContent = `${ROLES[ORG.me.role]} in ${ORG.name}`; $("meinit").innerHTML = av(ME.email);
+  store.set("cuffconsole.plan", null);
   await refreshPeople();
   show("app"); buildNav(); route();
 }
@@ -506,6 +531,7 @@ PAGES.agents = async (main) => {
   if (agentFilter.q) { const s = f.q; s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
 };
 
+const PAST = { active: "Reactivated", suspended: "Suspended", disabled: "Disabled" };
 // change many agents at once: one reason, one confirmation, then each change is checked and logged by the server
 function bulkStatus(ids, status, main) {
   const verb = { active: "Reactivate", suspended: "Suspend", disabled: "Disable" }[status];
@@ -514,7 +540,8 @@ function bulkStatus(ids, status, main) {
   async (fd) => {
     let ok = 0, failed = 0;
     for (const id of ids) { try { await cp("agent_set_status", { id, status, reason: fd.get("reason") }); ok++; } catch { failed++; } }
-    closeModal(); toast(failed ? `${verb}d ${ok}; ${failed} couldn't be changed (your role may not cover them).` : `${verb}d ${ok} agent${ok === 1 ? "" : "s"}.`, failed > 0);
+    closeModal(); const done = PAST[status];
+    toast(failed ? `${done} ${ok}; ${failed} couldn't be changed (your role may not cover them).` : `${done} ${ok} agent${ok === 1 ? "" : "s"}.`, failed > 0);
     PAGES.agents(main).catch(fail);
   });
 }
@@ -544,7 +571,7 @@ async function agentDrawer(id) {
     const s = b.dataset.s, verb = { active: "Reactivate", suspended: "Suspend", disabled: "Disable" }[s];
     modal(`${verb} ${a.name}`, `<form class="form"><label>Reason (kept in the audit log)<textarea name="reason" rows="3" maxlength="500"></textarea></label><p class="err"></p>
       <div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn ${s === "active" ? "primary" : "danger"}">${verb}</button></div></form>`,
-    async (fd) => { await cp("agent_set_status", { id: a.id, status: s, reason: fd.get("reason") }); closeModal(); toast(`${verb}d.`); agentDrawer(a.id); refreshIf("agents"); });
+    async (fd) => { await cp("agent_set_status", { id: a.id, status: s, reason: fd.get("reason") }); closeModal(); toast(`${PAST[s]}.`); agentDrawer(a.id); refreshIf("agents"); });
   }));
   $("aedit") && ($("aedit").onclick = () => agentForm(a));
   $("adel") && ($("adel").onclick = async () => {
@@ -845,7 +872,7 @@ function planCard() {
     <dl class="kv"><dt>Active people</dt><dd>${people}</dd>
       <dt>When billing starts</dt><dd>${starter ? "Starter: free for up to 3 people" : `Team: $${people * 9}/month billed yearly ($9 × ${people}), or $${people * 11} month to month`}</dd></dl>
     <p class="muted small" style="margin:0">Business ($19 per person per month) adds approvals, live activity with a kill switch, and the security center as they are released. Enterprise is priced on request from 100 people.
-      <a href="../#business" target="_blank" rel="noopener">See pricing</a></p>`;
+      <a href="../pricing.html?for=companies" target="_blank" rel="noopener">See pricing</a></p>`;
 }
 
 function renderMfa() {
