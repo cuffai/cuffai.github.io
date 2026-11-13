@@ -6,7 +6,16 @@
 <title>Cuff AI Console</title>
 <meta name="description" content="Manage your company's AI agents, workstations, people and policies.">
 <meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<script>
+  // pick the theme before anything paints: your choice, else your computer's setting
+  (function () { var t = null; try { t = localStorage.getItem("cuffconsole.theme"); } catch (e) {}
+    document.documentElement.dataset.theme = t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); })();
+</script>
 <link rel="stylesheet" href="console.css">
 </head>
 <body>
@@ -15,9 +24,9 @@
 <!-- sign in -->
 <main id="signin" class="center" hidden>
   <div class="auth">
-    <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI <b>Console</b></span></div>
-    <h1>Sign in</h1>
-    <p class="muted">Manage your company's AI agents, workstations and people. We'll email you a code.</p>
+    <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI <span>Console</span></span></div>
+    <h1>Sign in to your organisation</h1>
+    <p class="muted">Manage your company's AI agents, computers and people. We'll email you a 6-digit code.</p>
     <form id="emailf" class="stack">
       <label for="email">Work email</label>
       <input id="email" type="email" autocomplete="email" required placeholder="you@company.com">
@@ -36,7 +45,7 @@
 <!-- choose or create an organisation -->
 <main id="orgs" class="center" hidden>
   <div class="auth wide">
-    <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI <b>Console</b></span>
+    <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI <span>Console</span></span>
       <button class="btn ghost sm right" id="signout1">Sign out</button></div>
     <h1>Your organisations</h1>
     <div id="invitebox"></div>
@@ -52,12 +61,29 @@
 
 <!-- the console -->
 <div id="app" class="shell" hidden>
-  <aside class="side">
-    <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI</span></div>
+  <header class="top">
+    <a class="brandrow" href="#/overview" aria-label="Cuff AI Console, overview"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI</span></a>
     <button class="orgswitch" id="orgswitch" title="Switch organisation"><span id="orgname2"></span><small id="myrole"></small></button>
-    <nav id="nav" aria-label="Sections"></nav>
-    <div class="sidefoot"><span id="whoami"></span><button class="btn ghost sm" id="signout2">Sign out</button></div>
-  </aside>
+    <div class="search" role="search">
+      <span class="ico" data-icon="search" aria-hidden="true"></span>
+      <input id="gsearch" type="search" placeholder="Search agents, people, computers or actions" aria-label="Search agents, people, computers or actions" autocomplete="off">
+      <kbd class="kbd" aria-hidden="true">/</kbd>
+      <div class="results" id="gresults" role="listbox" hidden></div>
+    </div>
+    <div class="topactions">
+      <button class="iconbtn" id="themebtn" title="Switch to dark theme" aria-label="Switch theme"><span class="ico" data-icon="moon"></span></button>
+      <div class="menuwrap">
+        <button class="avatarbtn" id="mebtn" aria-haspopup="menu" aria-expanded="false" title="Your account"><span id="meinit"></span></button>
+        <div class="menu" id="memenu" role="menu" hidden>
+          <div class="menuhead"><b id="whoami"></b><span id="myrole2"></span></div>
+          <button role="menuitem" id="menuorg"><span class="ico" data-icon="building"></span>Switch organisation</button>
+          <button role="menuitem" id="menusettings"><span class="ico" data-icon="settings"></span>Settings</button>
+          <button role="menuitem" id="signout2"><span class="ico" data-icon="logout"></span>Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <aside class="side"><nav id="nav" aria-label="Sections"></nav></aside>
   <main class="main" id="main" tabindex="-1"></main>
 </div>
 
@@ -68,7 +94,7 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="eg" gradientUnits="userSpaceOnUse" x1="100" y1="175" x2="100" y2="25"><stop offset="0" stop-color="#16A6B8"/><stop offset=".3" stop-color="#2EB872"/><stop offset=".5" stop-color="#9FBF1F"/><stop offset=".7" stop-color="#F2A516"/><stop offset=".85" stop-color="#FA6A2A"/><stop offset="1" stop-color="#F2364A"/></linearGradient>
-  <g id="emblem"><path d="M149.5 149.5A70 70 0 1 1 149.5 50.5" fill="none" stroke="url(#eg)" stroke-width="28" stroke-linecap="round"/><circle cx="100" cy="100" r="18" fill="#E8ECF2"/></g>
+  <g id="emblem"><path d="M149.5 149.5A70 70 0 1 1 149.5 50.5" fill="none" stroke="url(#eg)" stroke-width="28" stroke-linecap="round"/><circle cx="100" cy="100" r="18" fill="var(--ink)"/></g>
 </defs></svg>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="console.js"></script>
