@@ -67,6 +67,17 @@ h1 span{background:linear-gradient(90deg,var(--l1),var(--l2) 40%,var(--l4) 75%,v
 section{padding:72px 0;border-top:1px solid var(--hair)}
 h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.035em;line-height:1.08;margin:0 0 14px;font-weight:720}
 .sub{color:var(--ink2);font-size:19px;max-width:52ch;margin:0 0 40px}
+.ptitle{font-size:22px;letter-spacing:-.02em;margin:34px 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ptag{font-size:12px;font-weight:650;color:var(--ink3);background:var(--fill);border-radius:999px;padding:3px 10px;letter-spacing:0}
+.psub{color:var(--ink2);margin:-6px 0 18px;max-width:70ch}
+.price h3{margin-top:0}
+.price .amt{font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0 0}
+.price .amt span{font-size:15px;color:var(--ink3);font-weight:550;letter-spacing:0}
+.price .per{font-size:13.5px;color:var(--ink3);margin:2px 0 12px}
+.price ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--ink2);font-size:15px}
+.grid.g4{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.price.hl{outline:2px solid var(--l2)}
+.soon{display:inline-block;font-size:11px;font-weight:650;color:var(--ink3);border:1px solid color-mix(in srgb,var(--ink3) 45%,transparent);border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
 .card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);padding:26px}
 .card h3{font-size:19px;letter-spacing:-.02em;margin:14px 0 6px}
@@ -177,14 +188,35 @@ footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid
 
 <section id="pricing"><div class="wrap">
   <h2>Simple pricing.</h2>
-  <p class="sub">Everything is free with your own AI key. Pro adds Cuff's AI, so you don't need one.</p>
+  <p class="sub">Free for one person with your own AI key. Companies pay per person, with the first three free.</p>
+
+  <h3 class="ptitle">For you</h3>
   <div class="grid">
-    <div class="card"><h3 style="margin-top:0">Free</h3><p style="font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0">$0</p>
-      <p>The desktop app, the phone remote, and Cuff AI Web with your own Claude or OpenAI key. You pay the AI company directly for what you use.</p></div>
-    <div class="card" style="outline:2px solid var(--l2)"><h3 style="margin-top:0">Pro</h3><p style="font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0">$12<span style="font-size:16px;color:var(--ink3);font-weight:550">/month</span></p>
+    <div class="card price"><h3>Free</h3><p class="amt">$0</p>
+      <p>The desktop app, the phone remote, Cuff for Chrome, and Cuff AI Web with your own Claude or OpenAI key. You pay the AI company directly for what you use.</p></div>
+    <div class="card price hl"><h3>Pro</h3><p class="amt">$12<span>/month</span></p>
       <p>No key needed: $6 of AI every month in Cuff AI Web, on every Claude model including Opus. Cancel any time.</p></div>
   </div>
-  <p class="small" style="margin-top:18px"><a href="app/">Open Cuff AI Web</a></p>
+
+  <h3 class="ptitle" id="business">For companies <span class="ptag">Cuff Control Plane</span></h3>
+  <p class="psub">One console for every AI agent on your company's computers and in Chrome. Priced per person in your organisation; every person can enrol up to 3 computers.</p>
+  <div class="grid g4">
+    <div class="card price"><h3>Starter</h3><p class="amt">$0</p><p class="per">up to 3 people</p>
+      <ul><li>Admin console, roles and teams</li><li>Agent registry from every computer</li><li>Signed company policies</li>
+        <li>Cuff for Chrome set by Chrome policy</li><li>Tamper-evident audit log</li><li>Two-step sign-in</li></ul></div>
+    <div class="card price hl"><h3>Team</h3><p class="amt">$9<span>/person/month</span></p><p class="per">billed yearly, or $11 month to month</p>
+      <ul><li>Everything in Starter</li><li>Unlimited people and computers</li><li>Require two-step sign-in for every admin</li>
+        <li>Audit export (JSON and CSV)</li></ul></div>
+    <div class="card price"><h3>Business</h3><p class="amt">$19<span>/person/month</span></p><p class="per">billed yearly, or $23 month to month</p>
+      <ul><li>Everything in Team</li><li>Human approvals and the full rule engine <span class="soon">In development</span></li>
+        <li>Live activity and a kill switch that confirms it worked <span class="soon">In development</span></li>
+        <li>Security center and model controls <span class="soon">In development</span></li></ul></div>
+    <div class="card price"><h3>Enterprise</h3><p class="amt">Custom</p><p class="per">from 100 people</p>
+      <ul><li>Everything in Business</li><li>SSO (SAML) and SIEM export <span class="soon">In development</span></li>
+        <li>Your own signing keys <span class="soon">In development</span></li><li>Volume pricing</li><li>Pay by invoice, yearly</li></ul></div>
+  </div>
+  <p class="small"><b>Early access:</b> every organisation gets Team free while company billing is being set up. Admins get an email 30 days before anything is charged.
+    <a href="console/">Open the console</a></p>
 </div></section>
 
 <section id="download"><div class="wrap">

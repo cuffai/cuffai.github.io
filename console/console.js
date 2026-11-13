@@ -606,7 +606,8 @@ PAGES.settings = async (main) => {
       : `<dl class="kv"><dt>Name</dt><dd>${esc(ORG.name)}</dd><dt>Two-step required</dt><dd>${s.require_mfa ? "Yes" : "No"}</dd></dl><p class="muted small">Only super admins change these.</p>`}
       <dl class="kv"><dt>Policy signing key</dt><dd class="mono">${esc(ORG.policy_key_fp || "—")}</dd><dt>Created</dt><dd>${esc(stamp(ORG.created_at))}</dd></dl>
       <p class="muted small">The signing key's private half is stored encrypted on the server and never leaves it; workstations pin the fingerprint when they enrol.</p></section>
-    <section class="card"><h2>Your two-step sign-in</h2><div id="mfa"></div></section></div>`;
+    <section class="card"><h2>Your two-step sign-in</h2><div id="mfa"></div></section></div>
+    <section class="card" style="margin-top:12px"><h2>Plan</h2>${planCard()}</section>`;
   const f = $("of");
   if (f) f.onsubmit = async (e) => {
     e.preventDefault();
@@ -615,6 +616,17 @@ PAGES.settings = async (main) => {
   };
   renderMfa();
 };
+// pricing (matches the website): Starter free up to 3 people; Team $9/person/month yearly or $11 monthly
+function planCard() {
+  const people = PEOPLE.filter((p) => p.status === "active").length;
+  const starter = people <= 3;
+  return `<p style="margin:0 0 6px">${pill("ok", "Early access")} <b>Team, free for now.</b> Company billing isn't on yet; admins get an email 30 days before anything is charged.</p>
+    <dl class="kv"><dt>Active people</dt><dd>${people}</dd>
+      <dt>When billing starts</dt><dd>${starter ? "Starter: free for up to 3 people" : `Team: $${people * 9}/month billed yearly ($9 × ${people}), or $${people * 11} month to month`}</dd></dl>
+    <p class="muted small" style="margin:0">Business ($19 per person per month) adds approvals, live activity with a kill switch, and the security center as they are released. Enterprise is priced on request from 100 people.
+      <a href="../#business" target="_blank" rel="noopener">See pricing</a></p>`;
+}
+
 function renderMfa() {
   const box = $("mfa"); if (!box) return;
   if (ME.mfa.enabled) {
