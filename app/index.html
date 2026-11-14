@@ -370,8 +370,32 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .seg2{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--fill);margin-top:10px;flex-wrap:wrap}
 .seg2 button{border:0;background:none;border-radius:9px;padding:7px 12px;font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
 .seg2 button.on{background:var(--surface-solid);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.codein{letter-spacing:.4em;font-size:18px!important;max-width:200px}
 .keyrow input[type=email]{font-family:inherit;font-size:14px}
+.procta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.procta + .small{margin-top:14px}
+/* sign-in window */
+#signin{width:min(400px,calc(100vw - 32px));padding:30px 28px 24px}
+#signin .x{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:9px;border:0;background:none;color:var(--ink3);cursor:pointer;font-size:20px;line-height:1}
+#signin .x:hover{background:var(--fill);color:var(--ink)}
+#signin .lockmark{width:44px;height:44px;border-radius:13px;background:var(--greenbg);color:var(--green);display:grid;place-items:center;margin-bottom:16px}
+#signin h2{font-size:22px}
+#signin .lead{font-size:14.5px;line-height:1.5;margin:0 0 20px}
+#signin .lead b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+#signin label.f{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin:0 0 6px}
+#signin input.big{width:100%;height:46px;padding:0 14px;border:1px solid var(--hair);border-radius:12px;background:var(--fill);color:var(--ink);font:inherit;font-size:15.5px}
+#signin input.big:focus,.otp input:focus{outline:none;border-color:var(--l1);box-shadow:0 0 0 3px color-mix(in srgb,var(--l1) 22%,transparent)}
+#signin .wide{width:100%;height:46px;font-size:15px;margin-top:14px}
+.otp{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.otp input{width:100%;min-width:0;height:54px;text-align:center;border:1px solid var(--hair);border-radius:12px;background:var(--fill);color:var(--ink);
+  font:600 24px/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;caret-color:var(--l1)}
+.otp input.filled{background:var(--surface-solid);border-color:color-mix(in srgb,var(--ink3) 50%,transparent)}
+.otp.bad input,#signin input.big.bad{border-color:var(--red)}
+.otp.bad{animation:shake .35s}
+#signin .keymsg{min-height:1.3em;margin-top:10px}
+#signin .alt{display:flex;justify-content:space-between;gap:10px;margin-top:14px;font-size:13.5px}
+#signin .alt .linkbtn{font-size:13.5px;padding:4px 6px}
+#signin .alt .linkbtn:disabled{color:var(--ink3);cursor:default;background:none}
+#signin .fine{font-size:12.5px;color:var(--ink3);margin:16px 0 0;text-align:center}
 
 /* chat */
 .chatcard{display:flex;flex-direction:column;min-height:420px}
@@ -423,6 +447,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
     <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="mark" aria-hidden="true"></span>Cuff AI<span class="webtag">Web</span></a>
     <div class="right">
       <div class="state" id="state"><span class="dot"></span><span id="statetext">Ready</span></div>
+      <button class="getapp" id="topsignin" hidden style="cursor:pointer;font-family:inherit">Sign in</button>
       <a class="getapp plan" id="planchip" href="../pricing.html?for=you" title="Plans and pricing">Free</a>
       <a class="getapp" href="../pricing.html?for=you">Pricing</a>
       <a class="getapp" href="../#download">Get the app</a>
@@ -464,9 +489,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
             <div class="seg2" role="tablist"><button id="tabcuff" role="tab" class="on">Cuff Pro · no key needed</button><button id="tabkey" role="tab">My own key · free</button></div>
             <div id="paneCuff">
               <div id="cuffform">
-                <div class="keyrow"><input id="email" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email"><button class="btn go" id="sendcode">Email me a code</button></div>
-                <div class="keyrow" id="coderow" hidden><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" aria-label="Code from the email" class="codein"><button class="btn go" id="verify">Sign in</button></div>
-                <p class="keymsg" id="cuffmsg"></p>
+                <div class="procta"><button class="btn go" id="opensignin">Sign in with email</button><span class="small" style="margin:0">No password. We email you a code.</span></div>
                 <p class="small" id="plantext">Cuff Pro: $12/month, with $6 of AI each month on every Claude model. No key needed. Using your own key is free.</p>
               </div>
               <p class="small" id="cuffoff" hidden>Cuff Pro is coming very soon. For now, use your own key (free).</p>
@@ -525,6 +548,28 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
   <h2>Let it change your files?</h2>
   <p>The AI will edit your folder directly, without asking first. A restore point is saved before every change, so you can undo.</p>
   <div class="actions"><button class="btn" id="c5no">Cancel</button><button class="btn danger" id="c5yes">Allow changes</button></div>
+</dialog>
+<dialog id="signin" aria-labelledby="sititle">
+  <button class="x" id="siclose" aria-label="Close">×</button>
+  <div class="lockmark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+  <form id="siemail" novalidate>
+    <h2 id="sititle">Sign in to Cuff</h2>
+    <p class="lead">Enter your email and we'll send you a 6-digit code. There's no password to remember.</p>
+    <label class="f" for="email">Email</label>
+    <input class="big" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com" required>
+    <p class="keymsg" id="emailmsg" role="alert"></p>
+    <button class="btn go wide" id="sendcode" type="submit">Email me a code</button>
+  </form>
+  <form id="sicode" novalidate hidden>
+    <h2>Check your email</h2>
+    <p class="lead">We sent a code to <b id="sentto"></b>. It works for 10 minutes.</p>
+    <label class="f" id="codelabel">6-digit code</label>
+    <div class="otp" id="otp" role="group" aria-labelledby="codelabel"></div>
+    <p class="keymsg" id="codemsg" role="alert"></p>
+    <button class="btn go wide" id="verify" type="submit">Sign in</button>
+    <div class="alt"><button class="linkbtn" type="button" id="otheremail">Change email</button><button class="linkbtn" type="button" id="resend">Send a new code</button></div>
+  </form>
+  <p class="fine" id="sifine">Free to sign in. Pro is $12 a month and only starts if you choose it.</p>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -988,7 +1033,7 @@ function setTab(m) {
   $("tabcuff").classList.toggle("on", m === "cuff"); $("tabkey").classList.toggle("on", m === "key");
   $("tabcuff").setAttribute("aria-selected", m === "cuff"); $("tabkey").setAttribute("aria-selected", m === "key");
   $("paneCuff").hidden = m !== "cuff"; $("paneKey").hidden = m !== "key";
-  (m === "cuff" ? ($("coderow").hidden ? $("email") : $("code")) : $("key")).focus({preventScroll: true});
+  if (m === "cuff") $("opensignin").focus({preventScroll: true}); else $("key").focus({preventScroll: true});
 }
 $("tabcuff").onclick = () => setTab("cuff");
 $("tabkey").onclick = () => setTab("key");
@@ -996,25 +1041,85 @@ $("tabkey").onclick = () => setTab("key");
 function shake(el, msgEl, text) { el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); msgEl.className = "keymsg bad"; msgEl.textContent = text; }
 async function busyBtn(btn, label, fn) { if (btn.disabled) return; btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = `<span class="spin"></span> ${label}`; try { await fn(); } finally { btn.disabled = false; btn.innerHTML = old; } }
 
-$("sendcode").onclick = () => busyBtn($("sendcode"), "Sending", async () => {
+/* ---------- sign in: its own window, email first, then the code ---------- */
+const OTP = Array.from({length: 6}, (_, i) => {
+  const el = document.createElement("input");
+  el.inputMode = "numeric"; el.maxLength = 6;   // phones fill the whole code into one box; it is spread across all six el.autocomplete = i ? "off" : "one-time-code";
+  el.setAttribute("aria-label", `Digit ${i + 1} of 6`); el.pattern = "[0-9]*";
+  $("otp").appendChild(el); return el;
+});
+const codeValue = () => OTP.map(x => x.value).join("");
+function setCode(digits, from = 0) {
+  digits = digits.replace(/\D/g, "").slice(0, 6 - from);
+  [...digits].forEach((d, k) => { OTP[from + k].value = d; });
+  OTP.forEach(x => x.classList.toggle("filled", !!x.value));
+  $("otp").classList.remove("bad"); $("codemsg").textContent = "";
+  const next = OTP.findIndex(x => !x.value);
+  if (next === -1) { OTP[5].focus(); $("sicode").requestSubmit(); } else OTP[next].focus();
+}
+OTP.forEach((el, i) => {
+  el.addEventListener("input", () => { const v = el.value; el.value = ""; setCode(v, i); });
+  el.addEventListener("paste", e => { e.preventDefault(); setCode((e.clipboardData || window.clipboardData).getData("text"), 0); });
+  el.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !el.value && i) { e.preventDefault(); OTP[i - 1].value = ""; OTP[i - 1].classList.remove("filled"); OTP[i - 1].focus(); }
+    else if (e.key === "ArrowLeft" && i) OTP[i - 1].focus();
+    else if (e.key === "ArrowRight" && i < 5) OTP[i + 1].focus();
+  });
+  el.addEventListener("focus", () => el.select());
+});
+
+let resendTimer = 0;
+function resendCountdown(sec) {
+  clearInterval(resendTimer); const b = $("resend");
+  const tick = () => { b.disabled = sec > 0; b.textContent = sec > 0 ? `New code in ${sec}s` : "Send a new code"; sec--; if (sec < -1) clearInterval(resendTimer); };
+  tick(); resendTimer = setInterval(tick, 1000);
+}
+function signinStep(which) {
+  $("siemail").hidden = which !== "email"; $("sicode").hidden = which !== "code";
+  if (which === "email") setTimeout(() => $("email").focus(), 30);
+  else { OTP.forEach(x => { x.value = ""; x.classList.remove("filled"); }); $("codemsg").textContent = ""; setTimeout(() => OTP[0].focus(), 30); }
+}
+function openSignin(note) {
+  $("emailmsg").className = "keymsg"; $("emailmsg").textContent = note || "";
+  $("email").classList.remove("bad");
+  signinStep("email");
+  if (!$("signin").open) $("signin").showModal();
+}
+$("opensignin").onclick = () => openSignin();
+$("topsignin").onclick = () => openSignin();
+$("siclose").onclick = () => $("signin").close();
+$("signin").addEventListener("click", e => { if (e.target === $("signin")) $("signin").close(); });
+
+async function sendCode(btn) {
   const email = $("email").value.trim();
-  if (!/^\S+@\S+\.\S+$/.test(email)) return shake($("email"), $("cuffmsg"), "Type your email address.");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return shake($("email"), $("emailmsg"), "Type your email address, like you@company.com.");
   try {
     await cuff({op: "send_code", email});
-    $("coderow").hidden = false; $("cuffmsg").className = "keymsg"; $("cuffmsg").textContent = `We emailed a 6-digit code to ${email}. It works for 10 minutes.`;
-    $("sendcode").textContent = "Send again"; $("code").value = ""; $("code").focus();
-  } catch (e) { shake($("email"), $("cuffmsg"), e.message); }
-});
-$("email").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("sendcode").click(); } });
-$("code").addEventListener("input", () => { $("code").value = $("code").value.replace(/\D/g, "").slice(0, 6); if ($("code").value.length === 6) $("verify").click(); });
-$("verify").onclick = () => busyBtn($("verify"), "Signing in", async () => {
+    $("sentto").textContent = email; signinStep("code"); resendCountdown(60);
+  } catch (e) {
+    if ($("sicode").hidden) shake($("email"), $("emailmsg"), e.message);
+    else { $("codemsg").className = "keymsg bad"; $("codemsg").textContent = e.message; }
+  }
+}
+$("siemail").onsubmit = e => { e.preventDefault(); busyBtn($("sendcode"), "Sending", () => sendCode()); };
+$("resend").onclick = () => busyBtn($("resend"), "Sending", () => sendCode());
+$("otheremail").onclick = () => { clearInterval(resendTimer); signinStep("email"); };
+$("sicode").onsubmit = e => { e.preventDefault(); busyBtn($("verify"), "Signing in", async () => {
+  const code = codeValue();
+  if (code.length < 6) { $("otp").classList.remove("bad"); void $("otp").offsetWidth; $("otp").classList.add("bad");
+    $("codemsg").className = "keymsg bad"; $("codemsg").textContent = "Type all 6 digits from the email."; return; }
   try {
-    const r = await cuff({op: "verify_code", email: $("email").value.trim(), code: $("code").value});
-    TOKEN = r.token; ME = r.me; store.set("cuffweb.token", TOKEN); setMode("cuff"); onConnected();
+    const r = await cuff({op: "verify_code", email: $("email").value.trim(), code});
+    TOKEN = r.token; ME = r.me; store.set("cuffweb.token", TOKEN); setMode("cuff");
+    $("signin").close(); clearInterval(resendTimer); onConnected();
     if (await followIntent()) return;
-    if (ME.plan !== "pro") toast("Signed in. Upgrade to Pro to use Cuff's AI, or switch to your own key.");
-  } catch (e) { shake($("code"), $("cuffmsg"), e.message); }
-});
+    toast(ME.plan === "pro" ? "Signed in. Cuff Pro is ready." : "Signed in. Upgrade to Pro to use Cuff's AI, or switch to your own key.");
+  } catch (e) {
+    $("otp").classList.remove("bad"); void $("otp").offsetWidth; $("otp").classList.add("bad");
+    $("codemsg").className = "keymsg bad"; $("codemsg").textContent = e.message;
+    OTP.forEach(x => { x.value = ""; x.classList.remove("filled"); }); OTP[0].focus();
+  }
+}); };
 
 async function ping(p, key, model) {
   if (p === "anthropic") {
@@ -1065,7 +1170,7 @@ function signOutLocal() {
 }
 function resetStep2() {
   $("s2body").hidden = false; $("s2done").hidden = true; $("s2").classList.remove("done"); $("n2").textContent = "2";
-  $("coderow").hidden = true; $("cuffmsg").textContent = ""; $("keymsg").textContent = ""; maybeFinishSetup();
+  $("keymsg").textContent = ""; maybeFinishSetup();
 }
 function renderAIBar() {
   renderPlanChip();
@@ -1097,8 +1202,8 @@ let INTENT = null;
 async function followIntent() {
   if (!INTENT) return false;
   if (!TOKEN || !ME) {
-    setTab("cuff"); $("email").focus();
-    toast(INTENT === "pro" ? "Sign in with your email to get Pro. Checkout opens right after." : "Sign in with your email to manage your plan.");
+    setTab("cuff");
+    openSignin(INTENT === "pro" ? "Sign in first. Checkout opens right after." : "Sign in to manage your plan.");
     return false;
   }
   const want = INTENT; INTENT = null; store.set("cuffweb.intent", null);
@@ -1108,6 +1213,7 @@ async function followIntent() {
   catch (e) { toast(e.message, true); return false; }
 }
 function renderPlanChip() {
+  $("topsignin").hidden = !!(TOKEN && ME) || !(STATUS && STATUS.email && STATUS.ai);
   const pro = ME?.plan === "pro", c = $("planchip");
   c.textContent = pro ? "Pro" : "Free"; c.classList.toggle("pro", pro);
   c.title = pro ? "Cuff Pro: see plans" : "Free plan: see plans and pricing";
