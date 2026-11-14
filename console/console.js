@@ -86,6 +86,7 @@ const PERMS = {
   "org.settings": ["super_admin"], "members.manage": ["super_admin", "admin"], "teams.manage": ["super_admin", "admin"],
   "workstations.manage": ["super_admin", "admin"], "agents.manage": ["super_admin", "admin"], "agents.team": ["super_admin", "admin", "team_manager"],
   "policy.manage": ["super_admin", "security_manager"], "audit.read": ["super_admin", "admin", "security_manager"],
+  "security.read": ["super_admin", "admin", "security_manager"], "security.act": ["super_admin", "admin", "security_manager"],
 };
 const can = (perm) => !!ORG && (PERMS[perm] || []).includes(ORG.me.role);
 const mayAssign = (role) => ORG.me.role === "super_admin" || (ORG.me.role === "admin" && ["team_manager", "employee"].includes(role));
@@ -308,7 +309,7 @@ async function refreshPeople() {
 const SECTIONS = [
   ["overview", "Overview", 1], ["agents", "AI Agents", 1], ["workstations", "Workstations", 1], ["people", "Employees & Teams", 1],
   ["policies", "Permissions & Policies", 1], ["approvals", "Approvals", 2], ["activity", "Activity Monitor", 3],
-  ["security", "Security Center", 4], ["models", "Model Management", 4], ["audit", "Audit Logs", 1], ["usage", "Usage & Costs", 5],
+  ["security", "Security Center", 1], ["models", "Model Management", 4], ["audit", "Audit Logs", 1], ["usage", "Usage & Costs", 5],
   ["settings", "Settings", 1],
 ];
 const GROUPS = [["Monitor", ["overview", "activity"]], ["Manage", ["agents", "workstations", "people"]],
@@ -348,7 +349,6 @@ const table = (cols, rows, empty) => `<div class="tablewrap"><table><thead><tr>$
 const LATER = {
   approvals: ["Human approvals arrive with the policy engine.", ["Rules that answer REQUIRE APPROVAL route the request here", "Approve or deny with a reason, with time limits and escalation", "Every decision written to the audit log"]],
   activity: ["Live monitoring arrives in Phase 3.", ["A live stream of what agents do on each workstation, marked verified (reported and signed by the workstation) or estimated", "The kill switch, showing a command issued separately from a command the workstation confirmed it enforced", "Remote policy updates with delivery status per workstation"]],
-  security: ["Security intelligence arrives in Phase 4.", ["Alerts for blocked actions, prompt-injection signs, unknown agents and unusual activity", "Findings from Cuff's agent scan on enrolled workstations", "Response actions linked to the kill switch"]],
   models: ["Model management arrives in Phase 4.", ["An inventory of the AI models and providers your agents use", "Allow and block lists of models and providers, by team", "Where model credentials live, without ever showing a secret"]],
   usage: ["Usage and costs arrive in Phase 5.", ["Usage per agent, team and provider", "Costs shown as estimates, clearly labelled, unless a provider bill confirms them", "Budgets and alerts"]],
 };
@@ -366,7 +366,7 @@ function notBuilt(sec) {
 const ACTIONS = [
   ["Register an agent", "agents", () => agentForm(), "agents.team"], ["Create an enrolment code", "workstations", () => codeForm(), "workstations.manage"],
   ["Invite people", "people", () => inviteForm(), "members.manage"], ["Publish a policy", "policies", () => go("policies"), "policy.manage"],
-  ["Verify the audit chain", "audit", () => go("audit"), "audit.read"], ["Set up two-step sign-in", "settings", () => go("settings"), null],
+  ["Verify the audit chain", "audit", () => go("audit"), "audit.read"], ["Scan every computer for AI agents", "security", () => scanAll(), "security.act"], ["Set up two-step sign-in", "settings", () => go("settings"), null],
   ["Switch theme", "settings", () => $("themebtn").click(), null],
 ];
 let searchSeq = 0, searchItems = [], searchOn = -1;
@@ -422,7 +422,7 @@ PAGES.overview = async (main) => {
   const providers = Object.entries(agents.reduce((m, a) => { const k = a.provider || "Not known"; m[k] = (m[k] || 0) + 1; return m; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 6);
   const maxP = Math.max(1, ...providers.map((p) => p[1]));
   const ACT_ICON = { agent: "agents", workstation: "workstations", device: "workstations", member: "people", policy: "policies", org: "building",
-    department: "team", team: "team", enrollment_code: "key" };
+    department: "team", team: "team", enrollment_code: "key", scan: "security" };
   main.innerHTML = head("Overview", `${esc(ORG.name)}, where every AI agent your organisation knows about stands right now.`) +
     `<div class="hero">
       <section class="card dialcard" aria-label="Company dial">
@@ -449,8 +449,8 @@ PAGES.overview = async (main) => {
           <section class="card"><h2 class="ch">Agents by provider</h2>${providers.length ? `<div class="hbars">${providers.map(([p, n]) =>
             `<div class="hbar"><b title="${esc(p)}">${esc(p)}</b><div class="meter"><i style="width:${pct(n, maxP)}%;background:${hue(p)}"></i></div><span>${n}</span></div>`).join("")}</div>`
             : emptyState("No agents yet", "Enrol a computer and the agents on it appear here.", "agents")}</section>
-          <section class="card"><h2 class="ch">Not measured yet</h2><div class="later">
-            <div>${icon("approvals")}Pending approvals<em>Phase 2</em></div><div>${icon("security")}Security alerts<em>Phase 4</em></div>
+          <section class="card"><h2 class="ch">Security and what's next</h2><div class="later">
+            <div>${icon("approvals")}Pending approvals<em>Phase 2</em></div>${o.findings ? `<div>${icon("security")}<a href="#/security">Agent scan findings</a><em>${o.findings.urgent ? `<b class="badtext">${o.findings.urgent} urgent</b>, ` : ""}${o.findings.check} to check</em></div>` : ""}
             <div>${icon("usage")}Estimated spend<em>Phase 5</em></div></div></section>
         </div>
       </div>
@@ -789,6 +789,117 @@ function chromePolicy(rules) {
   return JSON.stringify(v, null, 2);
 }
 
+// ---- Security Center: what Cuff's agent scan found on every enrolled computer, and what to do about it ----------------
+// Each computer runs the scan and reports what it found and why (keys, passwords and tokens are removed on the computer
+// first). Admins ask a computer to scan again, or to stop, turn off or trust something; each request is signed with the
+// organisation key, done by the computer and confirmed back. The person using the computer sees every request in Cuff.
+const RISK = { high: ["bad", "Urgent"], medium: ["warn", "Check"], low: ["info", "Worth knowing"], info: ["plain", "Listed"] };
+const FSTATE = { open: ["", "Open"], trusted: ["ok", "Trusted"], disabled: ["ok", "Turned off"], fixed: ["ok", "Fixed"], gone: ["", "Not running"] };
+const FKIND = { process: ["Running program", "activity"], startup: ["Starts by itself", "clock"], tool: ["Tool in an AI app", "key"],
+  key: ["AI key in a file", "lock"], script: ["AI script", "audit"], hidden_text: ["Hidden instructions", "info"] };
+const CSTATUS = { pending: ["", "Waiting for the computer"], delivered: ["info", "Delivered"], done: ["ok", "Done"], failed: ["bad", "Didn't work"], expired: ["warn", "Expired"] };
+const ACT = { stop: ["Stop it", "stopped", "pause", "The program is stopped on that computer now. If something starts it again, it will be found again."],
+  disable: ["Turn it off", "turned off", "ban", "Cuff turns it off and keeps a copy on that computer, so the person using it can bring it back."],
+  trust: ["Trust it", "trusted", "check", "Cuff stops warning about it on that computer and here."] };
+let secFilter = { q: "", risk: "", state: "open", ws: "" }, SEC = null;
+const secWs = (id) => SEC.workstations.find((w) => w.id === id);
+
+PAGES.security = async (main) => {
+  if (!can("security.read")) { main.innerHTML = head("Security Center", "") + `<div class="notice">Your role doesn't include the Security Center. Super admins, administrators and security managers can see it.</div>`; return; }
+  SEC = await cp("security_overview");
+  const all = SEC.findings, open = all.filter((f) => f.state === "open");
+  const n = (r) => open.filter((f) => f.risk === r).length;
+  const scanned = SEC.workstations.filter((w) => w.scan_at).length;
+  const last = SEC.workstations.map((w) => w.scan_at).filter(Boolean).sort().pop();
+  const q = secFilter.q.toLowerCase();
+  const rows = all.filter((f) => (!secFilter.risk || f.risk === secFilter.risk) && (!secFilter.state || f.state === secFilter.state)
+    && (!secFilter.ws || f.workstation_id === secFilter.ws)
+    && (!q || `${f.title} ${f.detail} ${f.where} ${secWs(f.workstation_id)?.name || ""}`.toLowerCase().includes(q)));
+  main.innerHTML = head("Security Center", "What Cuff's agent scan found on your company's computers: AI agents running outside Cuff, things that start them, AI keys left in files and hidden instructions.",
+    `<button class="btn" id="srefresh">${icon("refresh")}Refresh</button>` + (SEC.can_act && SEC.workstations.length ? `<button class="btn primary" id="scanall">${icon("search")}Scan every computer</button>` : "")) +
+    `<div class="stats" style="margin-bottom:14px">
+      <section class="card stat"><div class="k">${icon("security")}Urgent</div><div class="v ${n("high") ? "badtext" : ""}">${n("high")}</div>
+        <div class="n">${n("high") ? "Deal with these first" : "Nothing urgent right now"}</div></section>
+      <section class="card stat"><div class="k">${icon("info")}To check</div><div class="v">${n("medium")}</div>
+        <div class="n">${n("low")} more worth knowing about</div></section>
+      <section class="card stat"><div class="k">${icon("workstations")}Computers scanned</div><div class="v">${scanned}<small> of ${SEC.workstations.length}</small></div>
+        <div class="n">${last ? "Latest " + esc(when(last)) : "No scans reported yet"}</div></section></div>` +
+    (SEC.workstations.length ? "" : `<div class="notice" style="margin-bottom:14px">No computers are enrolled yet. <a href="#/workstations">Enrol one</a> and its scan results appear here.</div>`) +
+    `<form class="toolbar" id="sf"><input type="search" name="q" placeholder="Search findings, files, computers" value="${esc(secFilter.q)}" aria-label="Search findings">
+      <select name="risk" aria-label="How urgent">${opts(Object.entries(RISK).map(([k, v]) => [k, v[1]]), secFilter.risk, "Any urgency")}</select>
+      <select name="state" aria-label="State">${opts(Object.entries(FSTATE).map(([k, v]) => [k, v[1]]), secFilter.state, "Any state")}</select>
+      <select name="ws" aria-label="Computer">${opts(SEC.workstations.map((w) => [w.id, w.name]), secFilter.ws, "Every computer")}</select>
+      <span class="count">${rows.length} finding${rows.length === 1 ? "" : "s"}</span></form>` +
+    table(["Finding", "Urgency", "Kind", "Computer", "First found", ...(secFilter.state ? [] : ["State"])], rows.map((f) => { const w = secWs(f.workstation_id) || {}, k = FKIND[f.kind];
+      return `<tr class="click" data-f="${esc(f.workstation_id + "/" + f.id)}" tabindex="0"><td><b>${esc(f.title)}</b><span class="sub clamp">${esc(f.detail)}</span></td>
+        <td>${pill(...RISK[f.risk])}</td><td><span class="tag">${icon(k[1])}${esc(k[0])}</span></td>
+        <td>${esc(w.name || "—")}<span class="sub">${esc(person(w.employee_id))}</span></td>
+        <td title="${esc(stamp(f.first_seen))}">${esc(when(f.first_seen))}</td>${secFilter.state ? "" : `<td>${pill(...FSTATE[f.state])}</td>`}</tr>`; }),
+      all.length ? emptyState("No findings match these filters", "Clear a filter to see more.")
+        : emptyState(scanned ? "Nothing found" : "No scan results yet", scanned ? "The computers that reported a scan found nothing to worry about."
+          : "Computers report their scan when they check in. Ask them to scan now with “Scan every computer”.")) +
+    `<div class="grid cols2" style="margin-top:12px">
+      <section class="card"><h2 class="ch">Computers</h2>${SEC.workstations.length ? `<ul class="feed">${SEC.workstations.map((w) => {
+        const c = open.filter((f) => f.workstation_id === w.id), u = c.filter((f) => f.risk === "high").length;
+        return `<li><span class="dot">${icon("workstations")}</span><span><b>${esc(w.name)}</b><span class="sub">${esc(person(w.employee_id))} · ${w.scan_at ? "scanned " + esc(when(w.scan_at)) : "no scan yet"}${w.connected ? "" : " · not checking in"}</span></span>
+          <span class="row">${u ? pill("bad", u + " urgent") : c.length ? pill("warn", c.length + " open") : w.scan_at ? pill("ok", "Clear") : ""}${SEC.can_act ? `<button class="btn ghost sm" data-scan="${esc(w.id)}">Scan now</button>` : ""}</span></li>`; }).join("")}</ul>`
+        : `<p class="muted">None enrolled yet.</p>`}</section>
+      <section class="card"><h2 class="ch">Requests to computers</h2>${SEC.commands.length ? `<ul class="feed">${SEC.commands.slice(0, 12).map((c) => {
+        const f = all.find((x) => x.id === c.fid && x.workstation_id === c.workstation_id);
+        return `<li><span class="dot ${c.status === "failed" ? "failed" : c.status === "done" ? "ok" : ""}">${icon(c.action === "scan" ? "search" : ACT[c.action][2])}</span>
+          <span><b>${c.action === "scan" ? "Scan" : esc(ACT[c.action][0].replace(" it", ""))}${f ? ": " + esc(f.title) : ""}</b><span class="sub">${esc(secWs(c.workstation_id)?.name || "Computer")} · ${esc(c.issued_by || "")}${c.result ? " · " + esc(c.result) : ""}</span></span>
+          <span class="row">${pill(...CSTATUS[c.status])}<time datetime="${esc(c.issued_at)}" title="${esc(stamp(c.issued_at))}">${esc(when(c.issued_at))}</time></span></li>`; }).join("")}</ul>`
+        : `<p class="muted">None yet. Requests are signed with your organisation's key, and each computer confirms what it did.</p>`}</section></div>
+    <p class="small muted">Computers send what was found and why, never file contents, passwords or whole keys. The person using each computer sees every request you make in their Cuff app.</p>`;
+  let tm; const fm = $("sf");
+  fm.oninput = (e) => { clearTimeout(tm); tm = setTimeout(() => { secFilter = Object.fromEntries(new FormData(fm)); PAGES.security(main).catch(fail); }, e.target.type === "search" ? 300 : 0); };
+  fm.onsubmit = (e) => e.preventDefault();
+  if (secFilter.q) { const s = fm.q; s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+  main.querySelectorAll("tr[data-f]").forEach((r) => { const [w, id] = r.dataset.f.split("/"), f = all.find((x) => x.workstation_id === w && x.id === id);
+    r.onclick = () => findingDrawer(f); r.onkeydown = (e) => e.key === "Enter" && findingDrawer(f); });
+  main.querySelectorAll("[data-scan]").forEach((b) => (b.onclick = () => scanOne(b.dataset.scan)));
+  $("srefresh").onclick = () => PAGES.security(main).catch(fail);
+  $("scanall") && ($("scanall").onclick = scanAll);
+};
+
+async function scanAll() {
+  if (!can("security.act")) return;
+  if (!await confirmBox("Scan every computer", "Each enrolled computer runs Cuff's agent scan when it next checks in (about a minute if it's on) and reports what it finds. The people using them will see that you asked.", "Scan every computer", false)) return;
+  try { const r = await cp("scan_command", { action: "scan" }); toast(`Asked ${r.sent} computer${r.sent === 1 ? "" : "s"} to scan.`); if (CURRENT === "security") PAGES.security($("main")).catch(fail); else go("security"); } catch (e) { fail(e); }
+}
+async function scanOne(ws) {
+  try { await cp("scan_command", { action: "scan", workstation_id: ws }); toast(`Asked ${secWs(ws)?.name || "the computer"} to scan.`); PAGES.security($("main")).catch(fail); } catch (e) { fail(e); }
+}
+
+function findingDrawer(f) {
+  const w = secWs(f.workstation_id) || {}, k = FKIND[f.kind];
+  const acts = SEC.can_act && f.state === "open" ? f.actions : [];
+  const d = drawer(`<div class="dhead"><span class="av sq lg" style="background:var(--${f.risk === "high" ? "bad" : f.risk === "medium" ? "warn" : "info"})" aria-hidden="true">${icon(k[1])}</span>
+      <div><h2>${esc(f.title)}</h2><div class="row" style="margin-top:4px">${pill(...RISK[f.risk])}${pill(...FSTATE[f.state])}<span class="tag">${esc(k[0])}</span></div></div></div>
+    <p style="margin:12px 0 0">${esc(f.detail)}</p>
+    ${acts.length ? `<div class="cmdbar" style="margin-top:14px;width:max-content;max-width:100%">${acts.map((a) =>
+      `<button class="btn ${a === "trust" ? "" : "danger"}" data-act="${a}">${icon(ACT[a][2])}${esc(ACT[a][0])}</button>`).join("")}</div>` : ""}
+    <dl class="kv"><dt>Computer</dt><dd>${esc(w.name || "—")}</dd><dt>Used by</dt><dd>${esc(person(w.employee_id))}</dd>
+      <dt>Where</dt><dd class="mono" style="word-break:break-all">${esc(f.where || "—")}</dd>
+      ${f.providers.length ? `<dt>AI services</dt><dd>${esc(f.providers.join(", "))}</dd>` : ""}
+      <dt>First found</dt><dd>${esc(stamp(f.first_seen))}</dd><dt>Last reported</dt><dd>${esc(stamp(f.last_seen))}</dd></dl>
+    <section class="card" style="margin-top:12px"><h2 class="ch">What to do</h2><ul class="tight">${(NEXT[f.kind] || []).map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>`);
+  d.querySelectorAll("[data-act]").forEach((b) => (b.onclick = async () => {
+    const a = b.dataset.act;
+    if (!await confirmBox(`${ACT[a][0]} on ${w.name || "this computer"}?`, `${esc(ACT[a][3])} ${esc(person(w.employee_id))} will see in Cuff that you asked.`, ACT[a][0], a !== "trust")) return;
+    try { await cp("scan_command", { action: a, workstation_id: f.workstation_id, finding: f.id });
+      toast(`Sent. ${w.name || "The computer"} will confirm when it's ${ACT[a][1]}.`); closeDrawer(); PAGES.security($("main")).catch(fail); } catch (e) { fail(e); }
+  }));
+}
+const NEXT = {
+  process: ["Ask the person using the computer whether they started it and why.", "If they need it, have them run it inside Cuff so it follows your company dial.", "If no one knows what it is, stop it, then scan again to find what starts it."],
+  startup: ["Ask whether someone set this up on purpose.", "If not, turn it off. The person using the computer can bring it back from Cuff if it was needed."],
+  tool: ["Check that the AI app needs this tool. Tools can read and change whatever the agent can.", "Tools that download their code fresh each time should be pinned to a version."],
+  key: ["Have the key's owner make a new key and delete this one.", "Keys belong in a password store or Cuff's bot settings, not in files agents can read."],
+  script: ["Check who added it and what it does before anyone runs it.", "If it's needed, run it inside Cuff."],
+  hidden_text: ["Someone may be trying to steer the company's AI agents through this file.", "Ask the person using the computer to remove the hidden text; Cuff on their computer can do it for them and keeps a copy."],
+};
+
 // ---- Audit Logs ---------------------------------------------------------------------------------------------------------
 let auditFilter = { q: "", action: "", outcome: "", actor_type: "", from: "", to: "" }, auditRows = [];
 PAGES.audit = async (main) => {
@@ -871,7 +982,7 @@ function planCard() {
   return `<p style="margin:0 0 6px">${pill("ok", "Early access")} <b>Team, free for now.</b> Company billing isn't on yet; admins get an email 30 days before anything is charged.</p>
     <dl class="kv"><dt>Active people</dt><dd>${people}</dd>
       <dt>When billing starts</dt><dd>${starter ? "Starter: free for up to 3 people" : `Team: $${people * 9}/month billed yearly ($9 × ${people}), or $${people * 11} month to month`}</dd></dl>
-    <p class="muted small" style="margin:0">Business ($19 per person per month) adds approvals, live activity with a kill switch, and the security center as they are released. Enterprise is priced on request from 100 people.
+    <p class="muted small" style="margin:0">Team includes the company agent scan. Business ($19 per person per month) adds approvals, live activity with a kill switch, and security alerts as they are released. Enterprise is priced on request from 100 people.
       <a href="../pricing.html?for=companies" target="_blank" rel="noopener">See pricing</a></p>`;
 }
 

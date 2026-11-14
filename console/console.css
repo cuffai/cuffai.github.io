@@ -287,3 +287,9 @@ th.sel,td.sel{width:40px;padding-right:0}
 }
 @media (prefers-reduced-motion: reduce){.spinner,.sk{animation:none}.toast,.dial .seg{transition:none}}
 .card .tablewrap{box-shadow:none}
+
+/* Security Center */
+.badtext{color:var(--bad)}
+.feed .dot.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+.sub.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:52ch}
+ul.tight{margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px}
