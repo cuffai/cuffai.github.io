@@ -4,295 +4,296 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Cuff AI</title>
-<meta name="description" content="Let AI agents work on your computer without handing over the keys. One dial from no access to full trust, and every change can be undone.">
+<title>Cuff AI: control every AI agent on your company's computers</title>
+<meta name="description" content="See and limit every AI agent on your company's computers from one console. Signed policies, an agent scan, a tamper-evident audit log. Free for up to 3 people. The desktop app is free for everyone.">
 <meta property="og:title" content="Cuff AI">
-<meta property="og:description" content="A permission dial for AI agents. Starts at zero. Every change can be undone.">
+<meta property="og:description" content="One console for every AI agent on your company's computers. Free for up to 3 people.">
 <link rel="icon" href="icon-192.png">
 <style>
 :root{
   --bg:#F5F6F8; --bg2:#ECEEF2; --surface:#FFFFFF; --hair:rgba(20,24,33,.09);
-  --ink:#0F131B; --ink2:#4B5363; --ink3:#868E9C; --fill:rgba(20,24,33,.05);
-  --l0:#8E97A8; --l1:#16A6B8; --l2:#2EB872; --l3:#9FBF1F; --l4:#F2A516; --l5:#FA6A2A; --l6:#F2364A;
+  --ink:#0F131B; --ink2:#4B5363; --ink3:#767E8C; --fill:rgba(20,24,33,.05);
+  --l0:#8E97A8; --l1:#16A6B8; --l2:#2EB872; --l3:#9FBF1F; --l4:#F2A516; --l5:#FA6A2A; --l6:#F2364A; --ok:#1E9E5A;
   --shadow:0 1px 2px rgba(16,20,30,.05),0 12px 40px rgba(16,20,30,.08);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+@media (prefers-color-scheme:dark){:root{
   --bg:#0B0D11; --bg2:#12151B; --surface:#171A21; --hair:rgba(255,255,255,.08);
-  --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A; --fill:rgba(255,255,255,.05);
+  --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#8A93A1; --fill:rgba(255,255,255,.05); --ok:#3DD68C;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 44px rgba(0,0,0,.35);
 }}
-:root[data-theme="dark"]{
-  --bg:#0B0D11; --bg2:#12151B; --surface:#171A21; --hair:rgba(255,255,255,.08);
-  --ink:#F3F5F8; --ink2:#AAB2C0; --ink3:#727B8A; --fill:rgba(255,255,255,.05);
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 44px rgba(0,0,0,.35);
-}
 *{box-sizing:border-box}
 html,body{margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  color:var(--ink);background:var(--bg);font-size:17px;line-height:1.55;letter-spacing:-.011em;-webkit-font-smoothing:antialiased}
+  color:var(--ink);background:var(--bg);font-size:16.5px;line-height:1.5;letter-spacing:-.011em;-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-nav{display:flex;align-items:center;gap:12px;padding:22px 0}
-.mark{width:30px;height:30px;border-radius:9px;flex:none;background:conic-gradient(from 225deg,var(--l1),var(--l2),var(--l3),var(--l4),var(--l5),var(--l6),var(--l1));
-  box-shadow:inset 0 0 0 7px var(--bg),0 1px 3px rgba(0,0,0,.15)}
-.brand{font-weight:700;font-size:18px;letter-spacing:-.02em}
-nav .sp{flex:1}
-nav a.l{font-size:15px;color:var(--ink2);text-decoration:none;margin-left:22px}
-nav a.l:hover{color:var(--ink)}
+img{max-width:100%;display:block}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+:focus-visible{outline:2px solid var(--l1);outline-offset:3px;border-radius:6px}
 
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:56px 0 72px}
-.eyebrow{display:inline-block;font-size:13px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--l2);margin-bottom:14px}
-h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.045em;margin:0 0 20px;font-weight:750}
-h1 span{background:linear-gradient(90deg,var(--l1),var(--l2) 40%,var(--l4) 75%,var(--l6));-webkit-background-clip:text;background-clip:text;color:transparent}
-.lede{font-size:20px;color:var(--ink2);max-width:33ch;margin:0 0 30px}
-.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.btn{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 24px;border-radius:14px;font-weight:650;font-size:17px;text-decoration:none;
-  background:var(--ink);color:var(--bg);transition:transform .15s}
+nav{display:flex;align-items:center;gap:12px;padding:18px 0}
+.mark{width:28px;height:28px;border-radius:8px;flex:none;background:conic-gradient(from 225deg,var(--l1),var(--l2),var(--l3),var(--l4),var(--l5),var(--l6),var(--l1));
+  box-shadow:inset 0 0 0 6px var(--bg),0 1px 3px rgba(0,0,0,.15)}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.02em;text-decoration:none;display:flex;align-items:center;gap:10px}
+nav .sp{flex:1}
+nav a.l{font-size:15px;color:var(--ink2);text-decoration:none;margin-left:20px}
+nav a.l:hover{color:var(--ink)}
+nav a.signin{margin-left:20px;font-size:14.5px;font-weight:650;text-decoration:none;padding:8px 14px;border-radius:10px;background:var(--fill)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 22px;border-radius:13px;font-weight:650;font-size:16px;text-decoration:none;
+  background:var(--ink);color:var(--bg);transition:transform .15s;white-space:nowrap}
 .btn:hover{transform:translateY(-1px)}
 .btn.sec{background:var(--fill);color:var(--ink)}
-.small{font-size:14px;color:var(--ink3);margin-top:14px}
+.btn.sm{height:42px;font-size:15px;padding:0 18px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.small{font-size:14px;color:var(--ink3);margin:12px 0 0}
 .small a{color:var(--ink2)}
 
-.dialcard{background:var(--surface);border-radius:32px;box-shadow:var(--shadow);padding:28px;aspect-ratio:1;display:grid;place-items:center;position:relative;overflow:hidden}
-.dialcard::before{content:"";position:absolute;inset:-30%;background:radial-gradient(closest-side,color-mix(in srgb,var(--cur,var(--l2)) 22%,transparent),transparent);transition:background 1s}
-.dial{position:relative;width:100%;max-width:400px}
-.dial svg{width:100%;display:block;overflow:visible}
-.dial .read{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
-.dial .read small{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--cur);text-transform:uppercase}
-.dial .read b{font-size:30px;letter-spacing:-.03em;line-height:1.1;margin-top:4px}
-.dial .read span{font-size:14px;color:var(--ink2);max-width:22ch;margin-top:6px;min-height:42px}
-.dial .lbl{font-size:13px;font-weight:650;fill:var(--ink3);cursor:pointer;text-anchor:middle;dominant-baseline:central}
-.dial .lbl.on{fill:var(--ink)}
+/* hero */
+.hero{display:grid;grid-template-columns:.85fr 1.15fr;gap:44px;align-items:center;padding:28px 0 44px}
+h1{font-size:clamp(36px,4.8vw,56px);line-height:1.04;letter-spacing:-.045em;margin:0 0 16px;font-weight:750}
+.lede{font-size:19px;color:var(--ink2);margin:0 0 24px;max-width:36ch}
+.shot{border-radius:16px;overflow:hidden;box-shadow:var(--shadow),0 0 0 1px var(--hair);background:#12151B}
+.shot .bar{display:flex;gap:6px;padding:10px 12px;background:#1B1F27}
+.shot .bar i{width:10px;height:10px;border-radius:50%;background:#3A404C}
+.shot img{aspect-ratio:16/10;width:100%;height:auto;object-fit:cover;object-position:top left}
 
-section{padding:72px 0;border-top:1px solid var(--hair)}
-h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.035em;line-height:1.08;margin:0 0 14px;font-weight:720}
-.sub{color:var(--ink2);font-size:19px;max-width:52ch;margin:0 0 40px}
-.ptitle{font-size:22px;letter-spacing:-.02em;margin:34px 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ptag{font-size:12px;font-weight:650;color:var(--ink3);background:var(--fill);border-radius:999px;padding:3px 10px;letter-spacing:0}
-.psub{color:var(--ink2);margin:-6px 0 18px;max-width:70ch}
-.price h3{margin-top:0}
-.price .amt{font-size:34px;font-weight:720;color:var(--ink);letter-spacing:-.03em;margin:6px 0 0}
-.price .amt span{font-size:15px;color:var(--ink3);font-weight:550;letter-spacing:0}
-.price .per{font-size:13.5px;color:var(--ink3);margin:2px 0 12px}
-.price ul{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--ink2);font-size:15px}
-.grid.g4{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
-.price.hl{outline:2px solid var(--l2)}
-.soon{display:inline-block;font-size:11px;font-weight:650;color:var(--ink3);border:1px solid color-mix(in srgb,var(--ink3) 45%,transparent);border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);padding:26px}
-.card h3{font-size:19px;letter-spacing:-.02em;margin:14px 0 6px}
-.card p{margin:0;color:var(--ink2);font-size:16px}
-.ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff}
-.levels{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
-.lv{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:18px 14px;border-top:4px solid var(--c)}
-.lv b{display:block;font-size:13px;color:var(--c);letter-spacing:.04em}
-.lv strong{display:block;font-size:16px;letter-spacing:-.02em;margin:4px 0}
-.lv span{font-size:14px;color:var(--ink2);line-height:1.4;display:block}
-.agents{display:flex;flex-wrap:wrap;gap:10px}
-.chip{padding:10px 16px;border-radius:999px;background:var(--surface);box-shadow:var(--shadow);font-weight:600;font-size:15px}
-.phone{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.mock{justify-self:center;width:280px;border-radius:44px;background:var(--surface);box-shadow:var(--shadow),0 0 0 10px var(--bg2);padding:26px 18px;text-align:center}
-.mock small{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--l2)}
-.mock b{display:block;font-size:26px;letter-spacing:-.03em;margin:2px 0 14px}
-.mseg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;background:var(--fill);border-radius:12px;padding:4px;margin-bottom:14px}
-.mseg i{height:30px;border-radius:9px;font-style:normal;font-size:13px;font-weight:650;display:grid;place-items:center;color:var(--ink3)}
-.mseg i.on{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.mstop{height:44px;border-radius:12px;background:var(--l6);color:#fff;font-weight:700;display:grid;place-items:center}
-.mrow{display:flex;align-items:center;gap:8px;text-align:left;margin-top:14px;font-size:13px}
-.mrow span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.mrow i{font-style:normal;font-weight:650;padding:5px 10px;border-radius:8px;background:var(--l2);color:#fff}
-.dl{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+/* two paths */
+.paths{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:48px}
+.path{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:24px 26px;display:grid;grid-template-rows:auto auto 1fr auto;gap:0}
+.path.biz{outline:2px solid var(--l2)}
+.path h2{font-size:22px;letter-spacing:-.025em;margin:0}
+.path .who{color:var(--ink2);margin:4px 0 14px;font-size:15.5px}
+.path ul{margin:0 0 18px;padding:0;list-style:none;display:grid;gap:7px;font-size:15px;color:var(--ink2)}
+.path li{display:grid;grid-template-columns:18px 1fr;gap:8px}
+.path li::before,.feat li::before{content:"";width:16px;height:16px;margin-top:3px;border-radius:50%;background:color-mix(in srgb,var(--l2) 18%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.3l2.2 2.2 4.8-5' fill='none' stroke='%232EB872' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.path .price{font-size:14.5px;color:var(--ink3);margin:0 0 12px}
+.path .price b{color:var(--ink);font-size:16px}
+
+/* sections */
+section{padding:52px 0;border-top:1px solid var(--hair)}
+h2.sec{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.035em;line-height:1.1;margin:0 0 8px;font-weight:720}
+.sub{color:var(--ink2);font-size:17.5px;max-width:62ch;margin:0 0 26px}
+
+/* business: screenshots + features */
+.tour{display:grid;grid-template-columns:1.3fr .7fr;gap:28px;align-items:start}
+.tabs{display:inline-flex;padding:4px;border-radius:12px;background:var(--fill);gap:4px;margin-bottom:12px}
+.tabs button{border:0;background:none;font:inherit;font-weight:650;font-size:14.5px;padding:7px 14px;border-radius:9px;cursor:pointer;color:var(--ink2)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cap{font-size:14px;color:var(--ink3);margin:10px 2px 0}
+.feat{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.feat li{display:grid;grid-template-columns:18px 1fr;gap:10px;font-size:15px;color:var(--ink2)}
+.feat b{display:block;color:var(--ink);font-size:16px;margin-bottom:1px}
+
+.plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:32px}
+.plan{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:22px 20px;position:relative;display:flex;flex-direction:column}
+.plan.hl{outline:2px solid var(--l2)}
+.plan .badge{position:absolute;top:-11px;left:20px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--l2);color:#fff}
+.plan h3{font-size:18px;margin:0;letter-spacing:-.02em}
+.plan .amt{font-size:30px;font-weight:750;letter-spacing:-.03em;margin:8px 0 0;line-height:1.1}
+.plan .amt span{font-size:14px;color:var(--ink3);font-weight:550;letter-spacing:0}
+.plan .per{font-size:13.5px;color:var(--ink3);margin:2px 0 12px}
+.plan ul{margin:0 0 16px;padding-left:17px;display:grid;gap:5px;color:var(--ink2);font-size:14.5px;flex:1}
+.soon{display:inline-block;font-size:11px;font-weight:650;color:var(--ink3);border:1px solid color-mix(in srgb,var(--ink3) 45%,transparent);border-radius:6px;padding:0 5px;white-space:nowrap}
+.note{font-size:14px;color:var(--ink2);margin:14px 0 0}
+
+/* individuals */
+.you{display:grid;grid-template-columns:.95fr 1.05fr;gap:32px;align-items:start}
+.levels{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:0 0 20px}
+.lv{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:10px 8px;border-top:3px solid var(--c);font-size:12.5px;line-height:1.3}
+.lv b{display:block;color:var(--c);font-size:12px}
+.lv strong{font-size:13px;letter-spacing:-.01em}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.mini .plan{padding:18px}
+.mini .plan p{margin:0 0 12px;font-size:14.5px;color:var(--ink2);flex:1}
+.mini .plan p.amt{font-size:26px;color:var(--ink);margin:4px 0 8px;flex:none}
+.agents{font-size:14px;color:var(--ink3);margin:16px 0 0}
+
+/* download */
+.dl{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .dl a{text-decoration:none}
-.dl .card{display:flex;flex-direction:column;gap:6px;transition:transform .15s}
+.dl .card{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px;display:flex;flex-direction:column;gap:2px;transition:transform .15s}
 .dl .card:hover{transform:translateY(-2px)}
 .dl .card.me{outline:2px solid var(--l2)}
 .dl .card.soon{opacity:.55;transform:none!important;cursor:default}
-.dl b{font-size:20px;letter-spacing:-.02em}
+.dl b{font-size:18px;letter-spacing:-.02em}
 .dl span{color:var(--ink3);font-size:14px}
-footer{padding:40px 0 60px;color:var(--ink3);font-size:14px;border-top:1px solid var(--hair)}
+
+footer{padding:32px 0 48px;color:var(--ink3);font-size:14px;border-top:1px solid var(--hair)}
+footer a{color:var(--ink2)}
+[hidden]{display:none!important}
+
+@media (max-width:1000px){.plans{grid-template-columns:repeat(2,minmax(0,1fr))}.levels{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:860px){
-  .hero,.phone{grid-template-columns:1fr}
-  .grid,.dl{grid-template-columns:1fr}
-  .levels{grid-template-columns:1fr 1fr}
+  .hero,.paths,.tour,.you,.dl{grid-template-columns:1fr}
   nav a.l{display:none} nav a.l.keep{display:inline;margin-left:14px}
-  .hero{padding-top:24px}
+  .hero{padding-top:8px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:560px){.plans,.mini{grid-template-columns:1fr}nav a.signin{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav><div class="mark"></div><span class="brand">Cuff AI</span><span class="sp"></span>
-    <a class="l" href="#how">How it works</a><a class="l" href="#phone">Phone remote</a><a class="l" href="app/">Use in browser</a><a class="l keep" href="pricing.html">Pricing</a><a class="l keep" href="#download">Download</a></nav>
+  <nav><a class="brand" href="./"><span class="mark"></span>Cuff AI</a><span class="sp"></span>
+    <a class="l keep" href="#business">For business</a><a class="l" href="#you">For individuals</a><a class="l keep" href="pricing.html">Pricing</a><a class="l" href="#download">Download</a>
+    <a class="signin" href="console/">Sign in</a></nav>
 
   <div class="hero">
     <div>
-      <span class="eyebrow">For Claude Code, Codex, Gemini and your own bots</span>
-      <h1>Give your AI a <span>dial</span>, not the keys.</h1>
-      <p class="lede">Cuff AI starts every agent at zero access. Turn one dial to let it do more. Every change can be undone.</p>
-      <div class="cta"><a class="btn" id="dlmain" href="#download">Download</a><a class="btn sec" href="app/">Try it in your browser</a></div>
-      <p class="small">Free while in preview · Windows, macOS and Linux · or <a href="app/">use it in your browser</a>, nothing to install</p>
+      <h1>Control every AI agent on your company's computers.</h1>
+      <p class="lede">See which agents are running, cap what they may do with a signed company policy, and stop the ones nobody approved. All from one console.</p>
+      <div class="cta"><a class="btn" href="console/?plan=starter">Start free for your team</a><a class="btn sec" href="#download">Download the free app</a></div>
+      <p class="small">Free for up to 3 people, no card. Works with Claude Code, Codex, Gemini, Cursor and your own bots, on Windows, macOS and Linux.</p>
     </div>
-    <div class="dialcard"><div class="dial" id="dial"></div></div>
+    <div class="shot"><div class="bar"><i></i><i></i><i></i></div>
+      <img src="shots/console-overview.webp" width="1600" height="1000" alt="The Cuff company console: a company dial set to level 3, 7 AI agents, 2 computers and recent activity"></div>
+  </div>
+
+  <!-- the two ways to use Cuff, side by side -->
+  <div class="paths">
+    <div class="path biz">
+      <h2>For your company</h2>
+      <p class="who">An admin console plus the free app on each computer. For IT and security teams.</p>
+      <ul>
+        <li>Every AI agent on every computer, in one list</li>
+        <li>One signed policy caps what agents may do everywhere</li>
+        <li>Company agent scan, with remote stop from the console</li>
+        <li>Tamper-evident audit log of every change</li>
+      </ul>
+      <p class="price"><b>Free</b> for up to 3 people, then from <b>$9</b> per person a month</p>
+      <div class="cta"><a class="btn sm" href="console/?plan=starter">Start free</a><a class="btn sm sec" href="#business">See how it works</a></div>
+    </div>
+    <div class="path">
+      <h2>For yourself</h2>
+      <p class="who">The desktop app on your own computer. No account needed.</p>
+      <ul>
+        <li>A dial from 0 (no access) to 6 (full trust) for every agent</li>
+        <li>Review each change before it happens, and undo anything</li>
+        <li>Find AI agents and leaked AI keys you didn't know about</li>
+        <li>Your phone as a remote, and Cuff for Chrome</li>
+      </ul>
+      <p class="price">The app is <b>free</b>. Pro, <b>$12</b> a month, adds Cuff's own AI in the browser.</p>
+      <div class="cta"><a class="btn sm" href="#download">Download free</a><a class="btn sm sec" href="#you">What you get</a></div>
+    </div>
   </div>
 </div>
 
-<section id="how"><div class="wrap">
-  <h2>Seven steps from Off to Full trust.</h2>
-  <p class="sub">You decide how much your AI can do. Lower the dial any time, and anything it's running stops right away.</p>
-  <div class="levels" id="levels"></div>
+<!-- business -->
+<section id="business"><div class="wrap">
+  <h2 class="sec">For business: one console for every agent.</h2>
+  <p class="sub">Each computer runs the free Cuff app and reports in about once a minute. Admins see and control everything from the browser.</p>
+  <div class="tour">
+    <div>
+      <div class="tabs" role="tablist" aria-label="Console screens">
+        <button role="tab" aria-selected="true" data-shot="console-overview" data-cap="Overview: the company dial, agents, computers and people, counted from what computers report.">Overview</button>
+        <button role="tab" aria-selected="false" data-shot="console-security" data-cap="Security Center: what the agent scan found on every computer, by urgency. Stop, turn off or trust from here.">Security Center</button>
+        <button role="tab" aria-selected="false" data-shot="console-audit" data-cap="Audit log: every admin action, hash-chained so any edit shows up when you verify it.">Audit log</button>
+      </div>
+      <div class="shot"><div class="bar"><i></i><i></i><i></i></div>
+        <img id="tourimg" src="shots/console-overview.webp" width="1600" height="1000" loading="lazy" alt="Cuff company console"></div>
+      <p class="cap" id="tourcap">Overview: the company dial, agents, computers and people, counted from what computers report.</p>
+    </div>
+    <ul class="feat">
+      <li><span><b>Know what's running</b>Agents are found by what they do: AI connections, keys, AI libraries, startup items and MCP tools.</span></li>
+      <li><span><b>Set one limit for everyone</b>Policies are signed with your company's key. Each computer checks the signature before applying it.</span></li>
+      <li><span><b>Act without touching the computer</b>Stop an agent, turn off what starts it, or trust it. The employee sees each request.</span></li>
+      <li><span><b>Prove it to an auditor</b>An append-only, hash-chained audit log, with JSON and CSV export.</span></li>
+      <li><span><b>Chrome too</b>Cuff for Chrome is set by Chrome policy, so AI-driven tabs ask before sending or paying.</span></li>
+    </ul>
+  </div>
+
+  <div class="plans">
+    <div class="plan"><h3>Starter</h3><p class="amt">$0</p><p class="per">Up to 3 people</p>
+      <ul><li>Admin console, roles and teams</li><li>Agent list from every computer</li><li>Signed company policies</li><li>Tamper-evident audit log</li><li>Two-step sign-in</li></ul>
+      <a class="btn sm sec" href="console/?plan=starter">Start free</a></div>
+    <div class="plan hl"><span class="badge">Free during early access</span><h3>Team</h3><p class="amt">$9<span>/person/month</span></p><p class="per">Billed yearly, or $11 monthly</p>
+      <ul><li>Everything in Starter</li><li>Unlimited people and computers</li><li>Company agent scan with remote stop</li><li>Two-step sign-in required for admins</li><li>Audit export</li></ul>
+      <a class="btn sm" href="console/?plan=team&amp;billing=yearly">Start Team</a></div>
+    <div class="plan"><h3>Business</h3><p class="amt">$19<span>/person/month</span></p><p class="per">Billed yearly, or $23 monthly</p>
+      <ul><li>Everything in Team</li><li>Human approvals and rules <span class="soon">Coming</span></li><li>Live activity and kill switch <span class="soon">Coming</span></li><li>Security alerts <span class="soon">Coming</span></li></ul>
+      <a class="btn sm sec" href="console/?plan=business&amp;billing=yearly">Start Business</a></div>
+    <div class="plan"><h3>Enterprise</h3><p class="amt">Custom</p><p class="per">100 people or more</p>
+      <ul><li>Everything in Business</li><li>SSO and SIEM export <span class="soon">Coming</span></li><li>Your own signing keys <span class="soon">Coming</span></li><li>Invoice billing</li></ul>
+      <a class="btn sm sec" href="console/?plan=enterprise">Talk to us</a></div>
+  </div>
+  <p class="note"><b>Early access:</b> every organisation gets Team free for now. Admins get an email 30 days before anything is charged. Each person can enrol up to 3 computers. <a href="pricing.html?for=companies">Compare plans</a></p>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Built for the moment AI agents need limits.</h2>
-  <p class="sub">The biggest names in AI now agree that agents need hard walls, not polite instructions. NVIDIA builds that for data centers. Cuff brings the same idea to your own computer, with a dial anyone can turn and an undo button.</p>
-  <div class="grid">
-    <div class="card"><h3 style="margin-top:0">Works with company rules</h3><p>Import your company's NVIDIA OpenShell policy and Cuff enforces it on your laptop. Export Cuff's setup to run the same rules on servers.</p></div>
-    <div class="card"><h3 style="margin-top:0">Protected sites</h3><p>Mark your bank or payment sites as protected. The AI can't touch them without a fresh yes from your phone, every single time.</p></div>
-    <div class="card"><h3 style="margin-top:0">Proof, not promises</h3><p>Every request Cuff makes for an agent carries a signed passport, and the activity log is tamper-evident. Hand an auditor a file they can check.</p></div>
+<!-- individuals -->
+<section id="you"><div class="wrap">
+  <h2 class="sec">For individuals: the free app.</h2>
+  <p class="sub">Download it, and every AI agent you start through Cuff begins with no access. Turn the dial to let it do more.</p>
+  <div class="you">
+    <div class="shot"><div class="bar"><i></i><i></i><i></i></div>
+      <img src="shots/app-dial.webp" width="1600" height="1000" loading="lazy" alt="The Cuff desktop app: the dial at level 2, start Claude Code, and the agent scan"></div>
+    <div>
+      <div class="levels" id="levels"></div>
+      <ul class="feat">
+        <li><span><b>Everything in the app is free</b>The dial, review and undo, the agent scan, the phone remote and Cuff for Chrome. No account, no card, no time limit.</span></li>
+        <li><span><b>Secrets stay hidden</b>SSH keys, passwords, cloud logins and browser profiles are invisible to agents below full trust.</span></li>
+        <li><span><b>Internet on your terms</b>Agents reach only the sites you allow, and protected sites need a fresh yes from your phone.</span></li>
+      </ul>
+      <div class="mini">
+        <div class="plan"><h3>Free</h3><p class="amt">$0</p><p>The desktop app, phone remote and Chrome extension. Cuff AI Web works with your own Claude or OpenAI key.</p>
+          <a class="btn sm" href="#download">Download</a></div>
+        <div class="plan"><h3>Pro</h3><p class="amt">$12<span>/month</span></p><p>Adds Cuff's own AI in Cuff AI Web ($6 of AI a month, every Claude model) and phone approvals in Chrome. The app itself is the same.</p>
+          <a class="btn sm sec" href="app/?plan=pro">Get Pro</a></div>
+      </div>
+      <p class="agents">Works with Claude Code, Codex CLI, Gemini CLI, opencode, Aider, Goose and your own Python or Node bot.</p>
+    </div>
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <h2>Walls it can't climb.</h2>
-  <p class="sub">Cuff uses the protections built into your operating system, not just polite instructions to the AI.</p>
-  <div class="grid">
-    <div class="card"><div class="ic" style="background:var(--l1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-      <h3>Secrets stay hidden</h3><p>Passwords, SSH keys, cloud logins and browser profiles are invisible to agents unless you choose Full trust.</p></div>
-    <div class="card"><div class="ic" style="background:var(--l2)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></div>
-      <h3>Undo anything</h3><p>Edits wait on a copy for your review. When real files change, a restore point is saved first.</p></div>
-    <div class="card"><div class="ic" style="background:var(--l4)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
-      <h3>Internet on your terms</h3><p>Agents only reach the sites you allow. Anything that sends data out needs your yes, once.</p></div>
-  </div>
-</div></section>
-
-<section><div class="wrap">
-  <h2>Works with the AI you already use.</h2>
-  <p class="sub">Start it from Cuff with one click, or add your own bot. Each runs inside the same walls.</p>
-  <div class="agents"><span class="chip">Claude Code</span><span class="chip">Codex CLI</span><span class="chip">Gemini CLI</span><span class="chip">opencode</span><span class="chip">Aider</span><span class="chip">Goose</span><span class="chip">Your own Python or Node bot</span></div>
-</div></section>
-
-<section id="phone"><div class="wrap phone">
-  <div>
-    <h2>Your phone is the remote.</h2>
-    <p class="sub">Scan a code once. Then see what your AI is doing, approve requests or hit Stop from anywhere. Everything between your phone and computer is end-to-end encrypted. Our relay only ever sees scrambled bytes.</p>
-    <p class="small">Full trust can only be turned on at the computer, so a lost phone can't hand your machine to an agent.</p>
-  </div>
-  <div class="mock" aria-hidden="true"><small>LEVEL 2</small><b>Suggest edits</b>
-    <div class="mseg"><i>0</i><i>1</i><i class="on">2</i><i>3</i><i>4</i><i>5</i><i>6</i></div>
-    <div class="mstop">Stop Agent</div>
-    <div class="mrow"><span>POST api.github.com/repos</span><i>Allow</i></div>
-    <div class="mrow"><span>3 edits ready to review</span><i>Apply</i></div>
-  </div>
-</div></section>
-
-<section id="pricing"><div class="wrap">
-  <h2>Simple pricing.</h2>
-  <p class="sub">Free for one person with your own AI key. Companies pay per person, with the first three free.</p>
-
-  <h3 class="ptitle">For you</h3>
-  <div class="grid">
-    <div class="card price"><h3>Free</h3><p class="amt">$0</p>
-      <p>The desktop app, the phone remote, Cuff for Chrome, and Cuff AI Web with your own Claude or OpenAI key. You pay the AI company directly for what you use.</p></div>
-    <div class="card price hl"><h3>Pro</h3><p class="amt">$12<span>/month</span></p>
-      <p>No key needed: $6 of AI every month in Cuff AI Web, on every Claude model including Opus. Cancel any time.</p></div>
-  </div>
-
-  <h3 class="ptitle" id="business">For companies <span class="ptag">Cuff Control Plane</span></h3>
-  <p class="psub">One console for every AI agent on your company's computers and in Chrome. Priced per person in your organisation; every person can enrol up to 3 computers.</p>
-  <div class="grid g4">
-    <div class="card price"><h3>Starter</h3><p class="amt">$0</p><p class="per">up to 3 people</p>
-      <ul><li>Admin console, roles and teams</li><li>Agent registry from every computer</li><li>Signed company policies</li>
-        <li>Cuff for Chrome set by Chrome policy</li><li>Tamper-evident audit log</li><li>Two-step sign-in</li></ul></div>
-    <div class="card price hl"><h3>Team</h3><p class="amt">$9<span>/person/month</span></p><p class="per">billed yearly, or $11 month to month</p>
-      <ul><li>Everything in Starter</li><li>Unlimited people and computers</li><li>Company agent scan on every computer</li><li>Require two-step sign-in for every admin</li>
-        <li>Audit export (JSON and CSV)</li></ul></div>
-    <div class="card price"><h3>Business</h3><p class="amt">$19<span>/person/month</span></p><p class="per">billed yearly, or $23 month to month</p>
-      <ul><li>Everything in Team</li><li>Human approvals and the full rule engine <span class="soon">In development</span></li>
-        <li>Live activity and a kill switch that confirms it worked <span class="soon">In development</span></li>
-        <li>Security alerts and model controls <span class="soon">In development</span></li></ul></div>
-    <div class="card price"><h3>Enterprise</h3><p class="amt">Custom</p><p class="per">from 100 people</p>
-      <ul><li>Everything in Business</li><li>SSO (SAML) and SIEM export <span class="soon">In development</span></li>
-        <li>Your own signing keys <span class="soon">In development</span></li><li>Volume pricing</li><li>Pay by invoice, yearly</li></ul></div>
-  </div>
-  <p class="small"><b>Early access:</b> every organisation gets Team free while company billing is being set up. Admins get an email 30 days before anything is charged.
-    <a href="console/">Open the console</a></p>
-  <p class="cta" style="margin-top:22px"><a class="btn" href="pricing.html">See full pricing</a><a class="btn sec" href="app/?plan=pro">Get Pro</a><a class="btn sec" href="console/?plan=team&amp;billing=yearly">Start Team</a></p>
-</div></section>
-
+<!-- download -->
 <section id="download"><div class="wrap">
-  <h2>Download Cuff AI</h2>
-  <p class="sub">Open it and a short walkthrough sets everything up. No terminal needed.</p>
+  <h2 class="sec">Download Cuff AI. It's free.</h2>
+  <p class="sub">The same app for individuals and companies. A short walkthrough sets it up, no terminal needed. To join your company, enter the code your admin sends you.</p>
   <div class="dl">
     <a href="https://github.com/cuffai/cuffai.github.io/releases/latest/download/Cuff-AI-Windows-Setup.exe" data-os="win"><div class="card"><b>Windows</b><span>Windows 10 and 11 · .exe installer</span></div></a>
     <a href="https://github.com/cuffai/cuffai.github.io/releases/latest/download/Cuff-AI-macOS.dmg" data-os="mac"><div class="card"><b>macOS</b><span>Apple silicon Macs · .dmg</span></div></a>
     <a href="https://github.com/cuffai/cuffai.github.io/releases/latest/download/Cuff-AI-Linux.AppImage" data-os="linux"><div class="card"><b>Linux</b><span>AppImage · .deb on the releases page</span></div></a>
   </div>
-  <p class="small">All versions: <a href="https://github.com/cuffai/cuffai.github.io/releases">releases page</a> · Phone remote: <a href="remote/">open on your phone</a></p>
+  <p class="small">All versions: <a href="https://github.com/cuffai/cuffai.github.io/releases">releases page</a> · No install: <a href="app/">use Cuff AI Web</a> · Phone remote: <a href="remote/">open on your phone</a></p>
 </div></section>
 
-<div class="wrap"><footer>© Cuff AI. Cuff works with AI agents made by other companies and isn't affiliated with them. <a href="privacy.html">Privacy</a></footer></div>
+<div class="wrap"><footer>© Cuff AI. Cuff works with AI agents made by other companies and isn't affiliated with them. <a href="pricing.html">Pricing</a> · <a href="console/">Company console</a> · <a href="privacy.html">Privacy</a></footer></div>
 
 <script>
-const T = ["Off", "Look only", "Suggest edits", "Suggest changes", "Suggest + websites", "Make changes", "Full trust"];
-const P = ["It can only talk. It can't touch your computer.", "It can read the folders you chose. Nothing else.",
-  "It edits a copy. Nothing changes until you approve.", "It can run commands on a copy. You approve the result.",
-  "Like Suggest changes, plus websites you allow.", "It changes your files directly, with a restore point first.",
-  "Your whole computer and the internet. Still logged."];
-const levels = document.getElementById("levels");
-levels.innerHTML = T.map((t, i) => `<div class="lv" style="--c:var(--l${i})"><b>${i}</b><strong>${t}</strong><span>${P[i]}</span></div>`).join("");
+/* the seven levels, compact */
+const T = ["Off", "Look only", "Suggest edits", "Suggest changes", "Suggest + web", "Make changes", "Full trust"];
+document.getElementById("levels").innerHTML = T.map((t, i) => `<div class="lv" style="--c:var(--l${i})"><b>${i}</b><strong>${t}</strong></div>`).join("");
 
-/* the dial */
-const C = 200, R = 160, S0 = -135, SPAN = 270;
-const pt = (a, r) => [C + r * Math.sin(a * Math.PI / 180), C - r * Math.cos(a * Math.PI / 180)];
-const arc = (a0, a1, r) => { const [x0, y0] = pt(a0, r), [x1, y1] = pt(a1, r); return `M${x0} ${y0}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`; };
-let cur = 2;
-function draw() {
-  const a = S0 + SPAN * cur / 6;
-  let s = `<svg viewBox="0 0 400 400"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="var(--l1)"/><stop offset=".5" stop-color="var(--l3)"/><stop offset="1" stop-color="var(--l6)"/></linearGradient></defs>
-    <path d="${arc(S0, S0 + SPAN, R)}" fill="none" stroke="var(--fill)" stroke-width="16" stroke-linecap="round"/>
-    ${cur ? `<path d="${arc(S0, a, R)}" fill="none" stroke="var(--l${cur})" stroke-width="16" stroke-linecap="round" style="transition:all .5s"/>` : ""}`;
-  for (let i = 0; i < 7; i++) { const [x, y] = pt(S0 + SPAN * i / 6, R + 30); s += `<text class="lbl ${i === cur ? "on" : ""}" x="${x}" y="${y}" data-i="${i}">${i}</text>`; }
-  const [kx, ky] = pt(a, R);
-  s += `<circle cx="${kx}" cy="${ky}" r="13" fill="#fff" stroke="var(--l${cur})" stroke-width="4"/></svg>
-    <div class="read"><small>Level ${cur}</small><b>${T[cur]}</b><span>${P[cur]}</span></div>`;
-  const d = document.getElementById("dial"); d.innerHTML = s;
-  d.parentElement.style.setProperty("--cur", `var(--l${cur})`);
-  d.querySelectorAll(".lbl").forEach(e => e.onclick = () => { cur = +e.dataset.i; stopAuto(); draw(); });
+/* console screenshots */
+const tabs = [...document.querySelectorAll(".tabs button")], img = document.getElementById("tourimg"), cap = document.getElementById("tourcap");
+function pick(b) {
+  tabs.forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  img.src = `shots/${b.dataset.shot}.webp`; img.alt = "Cuff company console: " + b.textContent; cap.textContent = b.dataset.cap;
 }
-let auto = setInterval(() => { cur = (cur + 1) % 7; draw(); }, 2600);
-function stopAuto() { clearInterval(auto); }
-draw();
+tabs.forEach((b, i) => {
+  b.onclick = () => pick(b);
+  b.onkeydown = e => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); } };
+});
 
-/* point the main button at this computer's download */
+/* point the download at this computer */
 const ua = navigator.userAgent, os = /Windows/.test(ua) ? "win" : /Mac/.test(ua) && !/iPhone|iPad/.test(ua) ? "mac" : /Linux/.test(ua) && !/Android/.test(ua) ? "linux" : "";
-if (os) {
-  const a = document.querySelector(`[data-os="${os}"]`);
-  a.firstElementChild.classList.add("me");
-  const m = document.getElementById("dlmain");
-  m.href = a.href; m.textContent = "Download for " + {win: "Windows", mac: "Mac", linux: "Linux"}[os];
-}
+if (os) document.querySelector(`[data-os="${os}"]`).firstElementChild.classList.add("me");
 
 /* only offer downloads that really exist in the latest public release */
 (async () => {
-  const links = [...document.querySelectorAll("[data-os]")];
   let names = null, tag = "";
   try {
     const r = await fetch("https://api.github.com/repos/cuffai/cuffai.github.io/releases/latest", {headers: {Accept: "application/vnd.github+json"}});
     if (r.ok) { const j = await r.json(); names = new Set(j.assets.map(x => x.name)); tag = j.tag_name; }
     else if (r.status === 404) names = new Set();
   } catch (e) {}
-  if (!names) return;                       // couldn't check (offline or rate limited): leave the links as they are
-  for (const a of links) {
+  if (!names) return;
+  for (const a of document.querySelectorAll("[data-os]")) {
     const file = a.href.split("/").pop();
     if (names.has(file)) { if (tag) a.querySelector("span").textContent += " · " + tag; continue; }
     a.removeAttribute("href"); a.setAttribute("aria-disabled", "true");
     a.firstElementChild.classList.add("soon");
     a.querySelector("span").textContent = "Coming soon";
-  }
-  const m = document.getElementById("dlmain");
-  if (os && !document.querySelector(`[data-os="${os}"]`).hasAttribute("href")) {
-    m.href = "#download"; m.textContent = "Coming soon for " + {win: "Windows", mac: "Mac", linux: "Linux"}[os];
   }
 })();
 </script>

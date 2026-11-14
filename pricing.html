@@ -69,6 +69,7 @@ h1{font-size:clamp(40px,6vw,62px);line-height:1.02;letter-spacing:-.045em;margin
 .plan li{display:grid;grid-template-columns:20px 1fr;gap:8px}
 .plan li::before{content:"";width:16px;height:16px;margin-top:3px;border-radius:50%;background:color-mix(in srgb,var(--l2) 18%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.3l2.2 2.2 4.8-5' fill='none' stroke='%232EB872' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
 .plan li.head{display:block;color:var(--ink);font-weight:650}
+.plan li > .soon{grid-column:2;justify-self:start;margin:2px 0 0}
 .plan li.head::before{display:none}
 .soon{display:inline-block;font-size:11px;font-weight:650;color:var(--ink3);border:1px solid color-mix(in srgb,var(--ink3) 45%,transparent);border-radius:6px;padding:0 5px;margin-left:4px;white-space:nowrap}
 .note{max-width:820px;margin:26px auto 0;background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:16px 20px;font-size:15px;color:var(--ink2);text-align:center}
@@ -110,35 +111,36 @@ footer a{color:var(--ink2)}
 <body>
 <div class="wrap">
   <nav><a class="brand" href="./" style="display:flex;align-items:center;gap:12px"><span class="mark"></span>Cuff AI</a><span class="sp"></span>
-    <a class="l" href="./#how">How it works</a><a class="l" href="app/">Use in browser</a><a class="l keep" href="pricing.html" aria-current="page">Pricing</a>
-    <a class="l" href="console/">Company console</a><a class="l keep" href="./#download">Download</a></nav>
+    <a class="l" href="./#business">For business</a><a class="l" href="app/">Use in browser</a><a class="l keep" href="pricing.html" aria-current="page">Pricing</a>
+    <a class="l" href="console/">Sign in</a><a class="l keep" href="./#download">Download</a></nav>
 
   <header class="top">
     <h1>Simple pricing</h1>
-    <p class="lede">Free for one person with your own AI key. Companies pay per person, and the first three are free.</p>
+    <p class="lede">Companies pay per person, and the first three people are free. For individuals, the desktop app is free.</p>
     <div class="switch" role="tablist" aria-label="Who it's for">
-      <button role="tab" id="t-you" aria-selected="true" aria-controls="you">For you</button>
-      <button role="tab" id="t-co" aria-selected="false" aria-controls="co">For companies</button>
+      <button role="tab" id="t-co" aria-selected="true" aria-controls="co">For business</button>
+      <button role="tab" id="t-you" aria-selected="false" aria-controls="you">For individuals</button>
     </div>
   </header>
 
   <main>
     <!-- for you -->
-    <div id="you" role="tabpanel" aria-labelledby="t-you">
+    <div id="you" role="tabpanel" aria-labelledby="t-you" hidden>
       <div class="plans two">
         <article class="plan">
-          <h2>Free</h2><p class="for">Everything you need to keep your AI agents in check.</p>
+          <h2>Free</h2><p class="for">The whole desktop app. No account needed.</p>
           <p class="amt">$0</p><p class="per">Free forever. No card.</p>
           <a class="go" href="./#download">Download Cuff AI</a>
           <a class="alt" href="app/">or use it in your browser</a>
           <ul>
+            <li class="head">The free download includes</li>
             <li>The dial: from look only to full trust</li><li>Review every change before it happens, undo anything</li>
             <li>Agent scan for agents you didn't know about</li><li>Your phone as a remote</li>
             <li>Cuff for Chrome</li><li>Cuff AI Web with your own Claude or OpenAI key</li>
           </ul>
         </article>
         <article class="plan hl"><span class="badge">Most popular</span>
-          <h2>Pro</h2><p class="for">No AI key needed. Cuff's AI, ready to go.</p>
+          <h2>Pro</h2><p class="for">The same app, plus Cuff's own AI in the browser. No AI key needed.</p>
           <p class="amt">$12<span>/month</span></p><p class="per">Cancel any time.</p>
           <a class="go" href="app/?plan=pro" id="getpro">Get Pro</a>
           <a class="alt" href="app/">Sign in with your email, pay securely with Stripe</a>
@@ -152,7 +154,7 @@ footer a{color:var(--ink2)}
     </div>
 
     <!-- for companies -->
-    <div id="co" role="tabpanel" aria-labelledby="t-co" hidden>
+    <div id="co" role="tabpanel" aria-labelledby="t-co">
       <div class="billing"><div class="switch" role="radiogroup" aria-label="Billing">
         <button role="radio" id="b-y" aria-selected="true" aria-checked="true">Yearly</button>
         <button role="radio" id="b-m" aria-selected="false" aria-checked="false">Monthly</button></div><span class="save">Save about 18% yearly</span></div>
@@ -203,19 +205,19 @@ footer a{color:var(--ink2)}
 
     <section class="more">
       <h3 class="sec">What happens when you pick a plan</h3>
-      <div class="steps" id="steps-you">
+      <div class="steps" id="steps-you" hidden>
         <div class="step"><b>Sign in</b><p>Enter your email and the 6-digit code we send you. No password to remember.</p></div>
         <div class="step"><b>Pay securely</b><p>Pro opens Stripe's checkout. Free needs nothing at all.</p></div>
         <div class="step"><b>You're in</b><p>You land straight in Cuff AI Web with Pro turned on. The desktop app and Chrome show Pro too once you sign in there.</p></div>
       </div>
-      <div class="steps" id="steps-co" hidden>
+      <div class="steps" id="steps-co">
         <div class="step"><b>Sign in</b><p>Use your work email and the 6-digit code we send you.</p></div>
         <div class="step"><b>Name your organisation</b><p>You become its super admin. Cuff creates the key that signs your policies.</p></div>
         <div class="step"><b>You're in</b><p>You land in the console. Invite your team and enrol computers with one command.</p></div>
       </div>
     </section>
 
-    <section class="more" id="compare" hidden>
+    <section class="more" id="compare">
       <h3 class="sec">Compare company plans</h3>
       <div class="tablewrap"><table>
         <thead><tr><th>Feature</th><th class="c">Starter</th><th class="c">Team</th><th class="c">Business</th><th class="c">Enterprise</th></tr></thead>
@@ -239,6 +241,8 @@ footer a{color:var(--ink2)}
     <section class="more">
       <h3 class="sec">Questions</h3>
       <div class="faq">
+        <details><summary>What can I download for free?</summary><p>The whole Cuff AI desktop app for Windows, macOS and Linux: the dial, review and undo, the agent scan, the phone remote and Cuff for Chrome. There's no time limit and no account. Pro only adds Cuff's own AI in Cuff AI Web and phone approvals in Chrome.</p></details>
+        <details><summary>Do my employees pay anything?</summary><p>No. Each computer runs the same free app. Your company pays per person for the console, and the first three people are free.</p></details>
         <details><summary>Do I need a card for the Free plan?</summary><p>No. Download the app or open Cuff AI Web and start. Free stays free.</p></details>
         <details><summary>What does Pro give me on the desktop and in Chrome?</summary><p>The desktop app and Chrome work fully on Free. Pro adds Cuff's own AI in Cuff AI Web, so you don't need a key, and in Chrome it lets you approve protected sites from your phone and keeps your full history. Sign in in either app to show Pro there.</p></details>
         <details><summary>Can I cancel Pro?</summary><p>Yes, any time, from "Manage plan" in Cuff AI Web or in the desktop app. It opens Stripe's billing page, where you can cancel.</p></details>
@@ -252,13 +256,13 @@ footer a{color:var(--ink2)}
   <footer>Cuff AI · <a href="./">Home</a> · <a href="app/">Cuff AI Web</a> · <a href="console/">Company console</a> · <a href="privacy.html">Privacy</a></footer>
 </div>
 <script>
-// for you / for companies (?for=companies opens the second), and yearly or monthly for company plans
+// for business (the default) / for individuals (?for=you), and yearly or monthly for company plans
 (function () {
   const $ = id => document.getElementById(id), q = new URLSearchParams(location.search);
   function show(co) {
     $("t-you").setAttribute("aria-selected", String(!co)); $("t-co").setAttribute("aria-selected", String(co));
     $("you").hidden = co; $("co").hidden = !co; $("compare").hidden = !co; $("steps-you").hidden = co; $("steps-co").hidden = !co;
-    history.replaceState(null, "", co ? "?for=companies" : location.pathname);
+    history.replaceState(null, "", co ? location.pathname : "?for=you");
   }
   function billing(yearly) {
     $("b-y").setAttribute("aria-selected", String(yearly)); $("b-m").setAttribute("aria-selected", String(!yearly));
@@ -275,7 +279,7 @@ footer a{color:var(--ink2)}
   $("t-you").onclick = () => show(false); $("t-co").onclick = () => show(true);
   $("b-y").onclick = () => billing(true); $("b-m").onclick = () => billing(false);
   [$("t-you"), $("t-co")].forEach(b => b.onkeydown = e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const co = b.id === "t-you"; show(co); $(co ? "t-co" : "t-you").focus(); } });
-  if (/compan|business|team/.test(q.get("for") || "")) show(true);
+  show(!/you|individual|personal/.test(q.get("for") || ""));
 })();
 </script>
 </body>
