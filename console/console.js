@@ -79,7 +79,7 @@ const store = {
 };
 
 let TOKEN = (LOCAL && qs.get("token")) || store.get("cuffconsole.token");
-let ME = null, ORG = null, PEOPLE = [], STRUCT = { departments: [], teams: [] }, WS = [];
+let ME = null, ORG = null, BILL = null, PEOPLE = [], STRUCT = { departments: [], teams: [] }, WS = [];
 
 const ROLES = { super_admin: "Super admin", admin: "Administrator", security_manager: "Security manager", team_manager: "Team manager", employee: "Employee" };
 const PERMS = {
@@ -299,6 +299,70 @@ async function openOrg(id) {
   store.set("cuffconsole.plan", null);
   await refreshPeople();
   show("app"); buildNav(); route();
+  await loadBilling();
+  billingReturn();
+}
+
+// ---- the plan: shown in the header for everyone; the super admin upgrades and manages billing ------------------------------
+const PLAN_LABEL = { early_access: "Team", starter: "Starter", team: "Team", business: "Business", enterprise: "Enterprise" };
+async function loadBilling() {
+  try { BILL = await cp("billing_get"); } catch { BILL = null; }
+  const pill = $("planpill"), up = $("upgradebtn");
+  if (!BILL) { up.hidden = true; return; }
+  const sub = BILL.paying ? (BILL.cancel_at_period_end ? "Ends soon" : BILL.status === "past_due" ? "Payment due" : BILL.interval === "month" ? "Monthly" : "Yearly")
+    : "Early access";
+  pill.innerHTML = `${esc(PLAN_LABEL[BILL.plan] || "Team")} <span>${esc(sub)}</span>`;
+  pill.title = BILL.paying ? "Your plan: see Settings for billing" : "Team is free during early access";
+  up.hidden = !(BILL.can_manage && !BILL.paying);
+}
+$("upgradebtn").onclick = () => upgrade();
+
+function upgrade() {
+  if (!BILL) return;
+  const n = Math.max(1, BILL.people), t = BILL.prices.team, b = BILL.prices.business;
+  const money = (x) => "$" + x.toLocaleString("en-US");
+  modal("Upgrade your organisation", `<form class="form" id="upf">
+    <p class="muted" style="margin:0 0 12px">You're on Team, free during early access. A paid plan is billed per person in ${esc(ORG.name)}
+      (${n} ${n === 1 ? "person" : "people"} now) and follows your people list as it changes.</p>
+    <div class="billtoggle" role="radiogroup" aria-label="Billing">
+      <label><input type="radio" name="interval" value="year" checked> Yearly <small>save 18%</small></label>
+      <label><input type="radio" name="interval" value="month"> Monthly</label></div>
+    <div class="plancards">
+      <div class="plancard pick"><b>Team</b><span class="amt" data-y="${money(t.year)}" data-m="${money(t.month)}">${money(t.year)}<small> /person/month</small></span>
+        <p>Console, signed policies, the company agent scan with remote stop, required two-step sign-in, audit export.</p>
+        <span class="tot" data-y="${money(t.year * 12 * n)} a year for ${n}" data-m="${money(t.month * n)} a month for ${n}">${money(t.year * 12 * n)} a year for ${n}</span></div>
+      <div class="plancard later"><b>Business</b><span class="amt" data-y="${money(b.year)}" data-m="${money(b.month)}">${money(b.year)}<small> /person/month</small></span>
+        <p>Approvals, live activity with a kill switch, and security alerts. Available to buy when they're released.</p></div>
+    </div>
+    <p class="muted small" style="margin:6px 0 0">Over 100 people? Enterprise is priced on request. Payment is handled by Stripe; Cuff never sees card details.</p>
+    <p class="err"></p>
+    <div class="actions"><button type="button" class="btn" data-close>Not now</button><button class="btn primary" type="submit">Continue to checkout</button></div></form>`,
+  async (fd) => {
+    const r = await cp("billing_checkout", { plan: "team", interval: fd.get("interval") });
+    location.href = r.url;
+  });
+  const f = $("upf");
+  f.querySelectorAll("input[name=interval]").forEach((r) => (r.onchange = () => {
+    const y = f.interval.value === "year";
+    f.querySelectorAll("[data-y]").forEach((el) => {
+      const v = el.dataset[y ? "y" : "m"];
+      if (el.classList.contains("amt")) el.firstChild.nodeValue = v; else el.textContent = v;
+    });
+  }));
+}
+async function manageBilling(btn) {
+  if (btn) btn.disabled = true;
+  try { location.href = (await cp("billing_portal")).url; } catch (e) { fail(e); } finally { if (btn) btn.disabled = false; }
+}
+// back from Stripe: Stripe tells Cuff a moment later, so wait for the plan to arrive
+async function billingReturn() {
+  const back = qs.get("billing"); if (!back) return;
+  qs.delete("billing"); history.replaceState(null, "", location.pathname + (qs.toString() ? "?" + qs : "") + location.hash);
+  if (back === "cancelled") return toast("No change made to your plan.");
+  toast("Thanks! Turning on your plan…");
+  for (let i = 0; i < 10 && !(BILL && BILL.paying); i++) { await new Promise((r) => setTimeout(r, 1500)); await loadBilling(); }
+  toast(BILL && BILL.paying ? `You're on ${PLAN_LABEL[BILL.plan]}. A receipt is on its way from Stripe.` : "Payment received. Your plan will show here in a minute.");
+  if ((location.hash.match(/^#\/([a-z]+)/) || [])[1] === "settings") route();
 }
 async function refreshPeople() {
   const [m, s] = await Promise.all([cp("members_list"), cp("structure")]);
@@ -955,6 +1019,7 @@ function auditDrawer(r) {
 // ---- Settings ------------------------------------------------------------------------------------------------------------
 PAGES.settings = async (main) => {
   ME = await cp("me"); ORG = { ...ORG, ...(await cp("org_get")) };
+  await loadBilling();
   const s = ORG.settings || {}, admin = can("org.settings");
   main.innerHTML = head("Settings", "") + `<div class="grid cols2">
     <section class="card"><h2>Organisation</h2>${admin ? `<form class="form" id="of">
@@ -974,15 +1039,29 @@ PAGES.settings = async (main) => {
     catch (er) { fail(er); }
   };
   renderMfa();
+  if ($("upgradebill")) $("upgradebill").onclick = () => upgrade();
+  if ($("managebill")) $("managebill").onclick = (e) => manageBilling(e.currentTarget);
 };
-// pricing (matches the website): Starter free up to 3 people; Team $9/person/month yearly or $11 monthly
+// the plan card in Settings: what you're on, and the way to change it
 function planCard() {
-  const people = PEOPLE.filter((p) => p.status === "active").length;
-  const starter = people <= 3;
-  return `<p style="margin:0 0 6px">${pill("ok", "Early access")} <b>Team, free for now.</b> Company billing isn't on yet; admins get an email 30 days before anything is charged.</p>
-    <dl class="kv"><dt>Active people</dt><dd>${people}</dd>
-      <dt>When billing starts</dt><dd>${starter ? "Starter: free for up to 3 people" : `Team: $${people * 9}/month billed yearly ($9 × ${people}), or $${people * 11} month to month`}</dd></dl>
-    <p class="muted small" style="margin:0">Team includes the company agent scan. Business ($19 per person per month) adds approvals, live activity with a kill switch, and security alerts as they are released. Enterprise is priced on request from 100 people.
+  if (!BILL) return `<p class="muted">The plan couldn't be loaded. Refresh to try again.</p>`;
+  const n = BILL.people, t = BILL.prices.team;
+  const date = (d) => d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : "—";
+  if (BILL.paying) {
+    return `<p style="margin:0 0 6px">${pill(BILL.status === "past_due" ? "warn" : "ok", BILL.status === "past_due" ? "Payment due" : "Paid")}
+        <b>${esc(PLAN_LABEL[BILL.plan] || "Team")}</b>, billed ${BILL.interval === "month" ? "monthly" : "yearly"}.</p>
+      <dl class="kv"><dt>People billed</dt><dd>${esc(BILL.seats ?? n)}${BILL.seats != null && BILL.seats !== n ? ` (updating to ${n})` : ""}</dd>
+        <dt>${BILL.cancel_at_period_end ? "Ends on" : "Renews on"}</dt><dd>${esc(date(BILL.period_end))}</dd></dl>
+      <p class="muted small" style="margin:0 0 10px">When people join or leave, Stripe adjusts the next invoice for the difference.</p>
+      ${BILL.can_manage ? `<button class="btn" id="managebill">Manage billing</button> <span class="muted small">Invoices, card, billing address, cancel</span>`
+        : `<p class="muted small" style="margin:0">Your super admin manages billing.</p>`}`;
+  }
+  return `<p style="margin:0 0 6px">${pill("ok", "Early access")} <b>Team, free for now.</b> Admins get an email 30 days before early access ends.</p>
+    <dl class="kv"><dt>Active people</dt><dd>${n}</dd>
+      <dt>Team, if paid now</dt><dd>$${t.year * n}/month billed yearly ($${t.year} × ${n}), or $${t.month * n} month to month</dd></dl>
+    ${BILL.can_manage ? `<button class="btn primary" id="upgradebill">Upgrade</button>${BILL.has_billing_account ? ` <button class="btn" id="managebill">Billing history</button>` : ""}`
+      : `<p class="muted small" style="margin:0">Your super admin can upgrade the organisation.</p>`}
+    <p class="muted small" style="margin:10px 0 0">Business ($19 per person per month) adds approvals, live activity with a kill switch, and security alerts as they are released. Enterprise is priced on request from 100 people.
       <a href="../pricing.html?for=companies" target="_blank" rel="noopener">See pricing</a></p>`;
 }
 
