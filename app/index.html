@@ -328,6 +328,8 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .brand{white-space:nowrap}
 .getapp{white-space:nowrap}
 .getapp.plan{font-weight:700;color:var(--ink2)}
+.getapp.testpay{color:#8A5A00;background:#FFF3D6;border-color:#F2C14E;cursor:help}
+@media (prefers-color-scheme:dark){.getapp.testpay{color:#F7C66B;background:rgba(242,165,22,.14);border-color:rgba(242,165,22,.45)}}
 .getapp.plan.pro{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--l1),var(--l2))}
 @media (max-width:520px){ .topbar .state{display:none} .webtag{display:none} }
 .webtag{font-size:12px;font-weight:650;color:var(--ink3);background:var(--fill2);padding:2px 8px;border-radius:999px;margin-left:2px;letter-spacing:0}
@@ -447,6 +449,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
     <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="mark" aria-hidden="true"></span>Cuff AI<span class="webtag">Web</span></a>
     <div class="right">
       <div class="state" id="state"><span class="dot"></span><span id="statetext">Ready</span></div>
+      <span class="getapp testpay" id="testchip" hidden title="Stripe is in test mode. No real payments are taken, and Pro bought here is only for testing.">Test payments</span>
       <button class="getapp" id="topsignin" hidden style="cursor:pointer;font-family:inherit">Sign in</button>
       <a class="getapp plan" id="planchip" href="../pricing.html?for=you" title="Plans and pricing">Free</a>
       <a class="getapp" href="../pricing.html?for=you">Pricing</a>
@@ -1536,6 +1539,7 @@ function renderStarters() {
   if (back) { INTENT = null; store.set("cuffweb.intent", null); }
   try { STATUS = await cuff({op: "status"}); } catch (e) { STATUS = null; }
   const signinOk = !!(STATUS && STATUS.email && STATUS.ai);
+  $("testchip").hidden = !(STATUS && STATUS.payments && !STATUS.live);   // never let test payments pass for real ones
   if (!signinOk) {
     $("cuffoff").hidden = false; $("cuffform").hidden = true;
     if (MODE === "cuff" && !TOKEN) MODE = "key";
