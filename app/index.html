@@ -337,6 +337,14 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .topbar .right{display:flex;align-items:center;gap:10px;margin-left:auto}
 .getapp{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--hair);background:var(--surface);font-weight:600;font-size:13.5px;text-decoration:none;display:inline-flex;align-items:center;color:var(--ink)}
 .lbl.locked{opacity:.35;cursor:not-allowed}
+.locked:not(.lbl):not(.detent){opacity:.42;filter:grayscale(1);cursor:not-allowed}
+.lbl[data-locked]{opacity:.35;cursor:not-allowed}
+.locktip{position:fixed;z-index:1000;max-width:260px;padding:9px 12px 10px;border-radius:10px;background:#11151C;color:#F3F5F8;
+  box-shadow:0 10px 30px rgba(0,0,0,.28);pointer-events:none;font-size:12.5px;line-height:1.4}
+.locktip b{display:flex;align-items:center;gap:6px;font-size:13.5px;margin-bottom:2px}
+.locktip svg{color:#3DD68C;flex:none}
+.locktip span{color:#C4CAD4;display:block}
+@media (prefers-reduced-motion:no-preference){.locktip{animation:tipin .12s ease-out}@keyframes tipin{from{opacity:0;transform:translateY(3px)}}}
 .detent.locked{opacity:.3}
 .lockhint{color:var(--ink3);font-size:12.5px;text-align:center;margin:8px 0 0;max-width:340px}
 
@@ -474,7 +482,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
     </div>
     <button class="stop" id="stop">Stop AI</button>
     <p class="hint">Stops it right away, even mid-task.</p>
-    <p class="lockhint">Levels 3, 4 and 6 run programs and reach the internet, so they need the <a href="../#download" style="color:var(--l1)">desktop app</a>.</p>
+    <p class="lockhint">Levels 3, 4 and 6 run programs and reach the internet, so they need the <a href="../#download" style="color:var(--l1)">desktop app</a>. Level 5 comes with Pro.</p>
   </aside>
 
   <main>
@@ -640,6 +648,7 @@ function drawDial() {
   $("down").disabled = level === 0; $("up").disabled = level === 5;
   const d = $("dial"); d.setAttribute("aria-valuenow", level); d.setAttribute("aria-valuetext", `${level}, ${TITLES[level]}`);
   chatHint();
+  applyLocks();
 }
 function nearestAllowed(n, dir) {
   if (ALLOWED.includes(n)) return n;
@@ -649,6 +658,7 @@ function nearestAllowed(n, dir) {
 }
 function requestLevel(n, dir = 0) {
   n = Math.max(0, Math.min(6, n));
+  if (n === 5 && !isPro()) { drawDial(); toast("Letting the AI change your files directly comes with Pro. Below 5 it suggests edits for you to review."); return; }
   if (!ALLOWED.includes(n)) {
     if (!dir) { toast(`Level ${n} needs the desktop app. It runs programs and reaches the internet.`); drawDial(); return; }
     n = nearestAllowed(n, dir);
@@ -1221,7 +1231,56 @@ function renderPlanChip() {
   const pro = ME?.plan === "pro", c = $("planchip");
   c.textContent = pro ? "Pro" : "Free"; c.classList.toggle("pro", pro);
   c.title = pro ? "Cuff Pro: see plans" : "Free plan: see plans and pricing";
+  if (!pro && level === 5 && (!TOKEN || ME)) { level = 2; store.set("cuffweb.level", "2"); drawDial(); }   // not (or no longer) Pro: back to suggesting
+  applyLocks();
 }
+
+/* ---------- Pro features: grayed out on Free, a tip under the cursor, a click starts the upgrade ---------- */
+const isPro = () => ME?.plan === "pro";
+const WHY5 = "Letting the AI change your files directly (level 5) comes with Pro.";
+const LOCKS = [
+  ['.lbl[data-i="5"], .detent[data-i="5"]', WHY5],
+  ["#up", WHY5, () => level === 2],
+  ["#download", "Downloading your folder with the AI's changes comes with Pro."],
+];
+function applyLocks() {
+  const free = !isPro();
+  for (const [sel, why, when] of LOCKS) document.querySelectorAll(sel).forEach(el => {
+    const lock = free && (!when || when());
+    if (lock === el.hasAttribute("data-locked")) return;
+    if (lock) { el.dataset.locked = why; el.setAttribute("aria-disabled", "true"); el.classList.add("locked"); }
+    else { delete el.dataset.locked; el.removeAttribute("aria-disabled"); el.classList.remove("locked"); }
+  });
+}
+function goPro() {
+  if (TOKEN && ME) return upgrade();
+  INTENT = "pro"; store.set("cuffweb.intent", "pro"); followIntent();
+}
+const tip = document.createElement("div");
+tip.className = "locktip"; tip.id = "locktip"; tip.setAttribute("role", "tooltip"); tip.hidden = true;
+document.body.appendChild(tip);
+const LOCK_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+function showTip(el, x, y) {
+  tip.innerHTML = `<b>${LOCK_ICON}Upgrade to unlock</b><span>${esc(el.dataset.locked)}</span>`;
+  tip.hidden = false; moveTip(x, y);
+}
+function moveTip(x, y) {
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + 14)) + "px";
+  tip.style.top = (y + 20 + h > innerHeight - 8 ? y - h - 12 : y + 20) + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+const lockedAt = t => t?.closest?.("[data-locked]");
+document.addEventListener("pointerover", e => { const el = lockedAt(e.target); if (el && !el.contains(e.relatedTarget)) showTip(el, e.clientX, e.clientY); });
+document.addEventListener("pointermove", e => { if (!tip.hidden && lockedAt(e.target)) moveTip(e.clientX, e.clientY); });
+document.addEventListener("pointerout", e => { const el = lockedAt(e.target); if (el && !el.contains(e.relatedTarget)) hideTip(); });
+document.addEventListener("focusin", e => { const el = lockedAt(e.target); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom - 6); } });
+document.addEventListener("focusout", e => { if (lockedAt(e.target)) hideTip(); });
+addEventListener("scroll", hideTip, true);
+document.addEventListener("click", e => {
+  if (!lockedAt(e.target)) return;
+  e.preventDefault(); e.stopImmediatePropagation(); hideTip(); goPro();
+}, true);
 $("changekey").onclick = async () => {
   if (MODE === "cuff") { try { await cuff({op: "sign_out"}); } catch (e) {} signOutLocal(); setTab("cuff"); }
   else { store.set("cuffweb.key." + prov(), null); $("key").value = ""; CONNECTED = false; renderAIBar(); resetStep2(); setTab("key"); }

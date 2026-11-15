@@ -309,12 +309,63 @@ async function loadBilling() {
   try { BILL = await cp("billing_get"); } catch { BILL = null; }
   const pill = $("planpill"), up = $("upgradebtn");
   if (!BILL) { up.hidden = true; return; }
-  const sub = BILL.paying ? (BILL.cancel_at_period_end ? "Ends soon" : BILL.status === "past_due" ? "Payment due" : BILL.interval === "month" ? "Monthly" : "Yearly")
-    : "Early access";
-  pill.innerHTML = `${esc(PLAN_LABEL[BILL.plan] || "Team")} <span>${esc(sub)}</span>`;
-  pill.title = BILL.paying ? "Your plan: see Settings for billing" : "Team is free during early access";
+  const until = BILL.early_access_until ? new Date(BILL.early_access_until).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+  const [name, sub] = BILL.paying
+    ? [PLAN_LABEL[BILL.plan] || "Team", BILL.cancel_at_period_end ? "Ends soon" : BILL.status === "past_due" ? "Payment due" : BILL.interval === "month" ? "Monthly" : "Yearly"]
+    : BILL.tier === "team" ? ["Team", "Free until " + until] : ["Starter", "Free"];
+  pill.innerHTML = `${esc(name)} <span>${esc(sub)}</span>`;
+  pill.classList.toggle("starter", BILL.tier === "starter");
+  pill.title = BILL.paying ? "Your plan: see Settings for billing" : BILL.tier === "team" ? `Team is free for your organisation until ${until}` : "The free Starter plan: up to 3 people";
   up.hidden = !(BILL.can_manage && !BILL.paying);
+  applyLocks();
 }
+
+// ---- features the free Starter plan doesn't include: grayed out, a tip under the cursor, a click opens Upgrade ------------------
+const LOCKS = [
+  ["#scanall, [data-scan], [data-act]", "Running the agent scan and acting on what it finds from the console come with Team."],
+  ["#exjson, #excsv", "Exporting the audit log comes with Team."],
+  ["#mfareq", "Requiring two-step sign-in for everyone comes with Team."],
+  ["#invite", "The free Starter plan is for up to 3 people, counting open invitations.", () => BILL.seats_taken >= BILL.starter_people],
+];
+const starterNow = () => !!(BILL && BILL.tier === "starter");
+function applyLocks(root = document) {
+  const on = starterNow();
+  for (const [sel, why, when] of LOCKS) root.querySelectorAll(sel).forEach((el) => {
+    const lock = on && (!when || when());
+    if (lock === el.hasAttribute("data-locked")) return;
+    if (lock) { el.dataset.locked = why; el.setAttribute("aria-disabled", "true"); el.classList.add("locked"); }
+    else { delete el.dataset.locked; el.removeAttribute("aria-disabled"); el.classList.remove("locked"); }
+    const input = el.matches("label") ? el.querySelector("input") : null;
+    if (input) input.tabIndex = lock ? -1 : 0;
+  });
+}
+new MutationObserver(() => applyLocks()).observe($("main"), { childList: true, subtree: true });
+const tip = document.createElement("div");
+tip.className = "locktip"; tip.setAttribute("role", "tooltip"); tip.id = "locktip"; tip.hidden = true;
+document.body.appendChild(tip);
+function showTip(el, x, y) {
+  tip.innerHTML = `<b>${icon("lock")}Upgrade to unlock</b><span>${esc(el.dataset.locked)}</span>`;
+  tip.hidden = false; el.setAttribute("aria-describedby", "locktip"); moveTip(x, y);
+}
+function moveTip(x, y) {
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + 14)) + "px";
+  tip.style.top = (y + 20 + h > innerHeight - 8 ? y - h - 12 : y + 20) + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+document.addEventListener("pointerover", (e) => { const el = e.target.closest?.("[data-locked]"); if (el && !el.contains(e.relatedTarget)) showTip(el, e.clientX, e.clientY); });
+document.addEventListener("pointermove", (e) => { if (!tip.hidden && e.target.closest?.("[data-locked]")) moveTip(e.clientX, e.clientY); });
+document.addEventListener("pointerout", (e) => { const el = e.target.closest?.("[data-locked]"); if (el && !el.contains(e.relatedTarget)) hideTip(); });
+document.addEventListener("focusin", (e) => { const el = e.target.closest?.("[data-locked]"); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom - 6); } });
+document.addEventListener("focusout", (e) => { if (e.target.closest?.("[data-locked]")) hideTip(); });
+addEventListener("scroll", hideTip, true);
+// a locked control does nothing except offer the upgrade
+document.addEventListener("click", (e) => {
+  const el = e.target.closest?.("[data-locked]"); if (!el) return;
+  e.preventDefault(); e.stopImmediatePropagation(); hideTip();
+  if (BILL?.can_manage) upgrade(); else toast("This comes with Team. Ask your super admin to upgrade.");
+}, true);
+document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.closest?.("[data-locked]")) { e.preventDefault(); e.target.click(); } }, true);
 $("upgradebtn").onclick = () => upgrade();
 
 function upgrade() {
@@ -322,7 +373,8 @@ function upgrade() {
   const n = Math.max(1, BILL.people), t = BILL.prices.team, b = BILL.prices.business;
   const money = (x) => "$" + x.toLocaleString("en-US");
   modal("Upgrade your organisation", `<form class="form" id="upf">
-    <p class="muted" style="margin:0 0 12px">You're on Team, free during early access. A paid plan is billed per person in ${esc(ORG.name)}
+    <p class="muted" style="margin:0 0 12px">${BILL.tier === "starter" ? "You're on the free Starter plan: up to 3 people, without the company agent scan, required two-step sign-in or audit export."
+      : "You're on Team, free until " + esc(new Date(BILL.early_access_until).toLocaleDateString(undefined, { day: "numeric", month: "long" })) + "."} A paid plan is billed per person in ${esc(ORG.name)}
       (${n} ${n === 1 ? "person" : "people"} now) and follows your people list as it changes.</p>
     <div class="billtoggle" role="radiogroup" aria-label="Billing">
       <label><input type="radio" name="interval" value="year" checked> Yearly <small>save 18%</small></label>
@@ -742,7 +794,7 @@ PAGES.people = async (main) => {
   if (manage) {
     $("invite").onclick = inviteForm;
     main.querySelectorAll("tr[data-id]").forEach((r) => { const p = m.members.find((x) => x.id === r.dataset.id); r.onclick = () => memberForm(p); r.onkeydown = (e) => e.key === "Enter" && memberForm(p); });
-    main.querySelectorAll("[data-revinv]").forEach((b) => (b.onclick = async () => { try { await cp("invite_revoke", { id: b.dataset.revinv }); toast("Invitation revoked."); PAGES.people(main); } catch (e) { fail(e); } }));
+    main.querySelectorAll("[data-revinv]").forEach((b) => (b.onclick = async () => { try { await cp("invite_revoke", { id: b.dataset.revinv }); toast("Invitation revoked."); loadBilling(); PAGES.people(main); } catch (e) { fail(e); } }));
   }
   if (teams) {
     $("newdep").onclick = () => structForm("department");
@@ -753,13 +805,17 @@ PAGES.people = async (main) => {
 };
 const roleOpts = (sel, current) => opts(Object.entries(ROLES).filter(([r]) => mayAssign(r) || r === current), sel);
 function inviteForm() {
+  if (starterNow() && BILL.seats_taken >= BILL.starter_people) {
+    if (BILL.can_manage) return upgrade();
+    return toast("The free Starter plan is for up to 3 people. Ask your super admin to upgrade.");
+  }
   modal("Invite people", `<form class="form"><label>Email<input name="email" type="email" required maxlength="200"></label>
     <label>Role<select name="role">${roleOpts("employee")}</select></label>
     <div class="grid cols2"><label>Team<select name="team_id">${teamOpts("")}</select></label><label>Department<select name="department_id">${deptOpts("")}</select></label></div>
     <p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Create invitation</button></div></form>`,
   async (fd) => {
     const a = Object.fromEntries(fd); for (const k of ["team_id", "department_id"]) if (!a[k]) a[k] = null;
-    const r = await cp("member_invite", a);
+    const r = await cp("member_invite", a); loadBilling();
     const link = `${location.origin}${location.pathname}#invite=${r.token}`;
     modal("Invitation link", `<div class="form"><p class="muted" style="margin:0">Send this link to <b>${esc(a.email)}</b>. It works once, for that email address only, until ${esc(stamp(r.expires_at))}. It is shown only now.</p>
       <div class="codebox">${esc(link)}</div><div class="actions"><button class="btn" id="copyl">Copy link</button><button class="btn primary" data-close>Done</button></div></div>`);
@@ -782,7 +838,7 @@ function memberForm(p) {
   $("mrem") && ($("mrem").onclick = async () => {
     closeModal();
     if (!await confirmBox("Remove member", `Remove <b>${esc(p.email)}</b> from ${esc(ORG.name)}? Their workstations stay enrolled until you revoke them.`, "Remove")) return;
-    try { await cp("member_remove", { id: p.id }); toast("Removed."); refreshIf("people"); } catch (e) { fail(e); }
+    try { await cp("member_remove", { id: p.id }); toast("Removed."); loadBilling(); refreshIf("people"); } catch (e) { fail(e); }
   });
 }
 function structForm(kind, item = null) {
@@ -1024,7 +1080,7 @@ PAGES.settings = async (main) => {
   main.innerHTML = head("Settings", "") + `<div class="grid cols2">
     <section class="card"><h2>Organisation</h2>${admin ? `<form class="form" id="of">
       <label>Name<input name="name" required maxlength="120" value="${esc(ORG.name)}"></label>
-      <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="require_mfa" ${s.require_mfa ? "checked" : ""}> Require two-step sign-in for everyone who makes changes</label>
+      <label id="${s.require_mfa ? "mfareq-on" : "mfareq"}" style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="require_mfa" ${s.require_mfa ? "checked" : ""}> Require two-step sign-in for everyone who makes changes</label>
       <label>A workstation counts as connected if it checked in within (minutes)<input name="connected_minutes" type="number" min="2" max="1440" value="${esc(s.connected_minutes ?? 5)}"></label>
       <div class="actions"><button class="btn primary">Save</button></div></form>`
       : `<dl class="kv"><dt>Name</dt><dd>${esc(ORG.name)}</dd><dt>Two-step required</dt><dd>${s.require_mfa ? "Yes" : "No"}</dd></dl><p class="muted small">Only super admins change these.</p>`}
@@ -1056,7 +1112,10 @@ function planCard() {
       ${BILL.can_manage ? `<button class="btn" id="managebill">Manage billing</button> <span class="muted small">Invoices, card, billing address, cancel</span>`
         : `<p class="muted small" style="margin:0">Your super admin manages billing.</p>`}`;
   }
-  return `<p style="margin:0 0 6px">${pill("ok", "Early access")} <b>Team, free for now.</b> Admins get an email 30 days before early access ends.</p>
+  const starter = BILL.tier === "starter";
+  return `<p style="margin:0 0 6px">${starter ? pill("info", "Free") + ` <b>Starter</b>: up to 3 people, ${BILL.seats_taken} of 3 used, counting open invitations.`
+      : pill("ok", "Early access") + ` <b>Team, free until ${esc(date(BILL.early_access_until))}.</b> After that, the free Starter plan's limits apply unless you upgrade.`}</p>
+    ${starter ? `<p class="muted small" style="margin:0 0 8px">Team adds more than 3 people, the company agent scan with remote stop, required two-step sign-in and audit export.</p>` : ""}
     <dl class="kv"><dt>Active people</dt><dd>${n}</dd>
       <dt>Team, if paid now</dt><dd>$${t.year * n}/month billed yearly ($${t.year} × ${n}), or $${t.month * n} month to month</dd></dl>
     ${BILL.can_manage ? `<button class="btn primary" id="upgradebill">Upgrade</button>${BILL.has_billing_account ? ` <button class="btn" id="managebill">Billing history</button>` : ""}`

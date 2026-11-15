@@ -104,6 +104,16 @@ input[type=checkbox]{min-height:auto;accent-color:var(--accent);width:16px;heigh
 .planpill span{color:var(--ink2);font-weight:500}
 .planintro{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin:10px 0 4px;font-size:14px;color:var(--ink2)}
 .planintro b{color:var(--ink)}
+/* features the free plan doesn't include */
+.locked{opacity:.42;filter:grayscale(1);cursor:not-allowed!important}
+.locked *{cursor:not-allowed!important}
+.locktip{position:fixed;z-index:1000;max-width:260px;padding:9px 12px 10px;border-radius:10px;background:#11151C;color:#F3F5F8;
+  box-shadow:0 10px 30px rgba(0,0,0,.28);pointer-events:none;font-size:12.5px;line-height:1.4}
+.locktip b{display:flex;align-items:center;gap:6px;font-size:13.5px;margin-bottom:2px}
+.locktip .ico{width:14px;height:14px;color:#3DD68C}
+.locktip span:not(.ico){color:#C4CAD4;display:block}
+@media (prefers-reduced-motion:no-preference){.locktip{animation:tipin .12s ease-out}@keyframes tipin{from{opacity:0;transform:translateY(3px)}}}
+.planpill.starter{background:var(--hover);color:var(--ink2);border-color:var(--line2)}
 .upgradebtn{min-height:32px;height:32px;padding:0 14px;border-radius:999px;font-weight:650;margin-right:6px}
 .form .billtoggle{display:inline-flex;width:auto;justify-self:start;padding:3px;border-radius:10px;background:var(--hover);gap:3px;margin:0 0 14px}
 .form .billtoggle label{display:inline-flex;flex-direction:row;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--ink2);cursor:pointer;margin:0}
