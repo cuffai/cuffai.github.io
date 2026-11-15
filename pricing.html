@@ -28,8 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variab
 a{color:inherit}
 .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
 nav{display:flex;align-items:center;gap:12px;padding:22px 0}
-.mark{width:30px;height:30px;border-radius:9px;flex:none;background:conic-gradient(from 225deg,#16A6B8,#2EB872,#9FBF1F,#F2A516,#FA6A2A,#F2364A,#16A6B8);
-  box-shadow:inset 0 0 0 7px var(--bg),0 1px 3px rgba(0,0,0,.15)}
+.mark{width:30px;height:30px;flex:none;display:block;color:var(--ink)}
 .brand{font-weight:700;font-size:18px;letter-spacing:-.02em;text-decoration:none}
 nav .sp{flex:1}
 nav a.l{font-size:15px;color:var(--ink2);text-decoration:none;margin-left:22px}
@@ -110,7 +109,7 @@ footer a{color:var(--ink2)}
 </head>
 <body>
 <div class="wrap">
-  <nav><a class="brand" href="./" style="display:flex;align-items:center;gap:12px"><span class="mark"></span>Cuff AI</a><span class="sp"></span>
+  <nav><a class="brand" href="./" style="display:flex;align-items:center;gap:12px"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="cuffmark" gradientUnits="userSpaceOnUse" x1="100" y1="175" x2="100" y2="25"><stop offset="0" stop-color="#16A6B8"/><stop offset=".3" stop-color="#2EB872"/><stop offset=".5" stop-color="#9FBF1F"/><stop offset=".7" stop-color="#F2A516"/><stop offset=".85" stop-color="#FA6A2A"/><stop offset="1" stop-color="#F2364A"/></linearGradient></defs><path d="M149.5 149.5A70 70 0 1 1 149.5 50.5" fill="none" stroke="url(#cuffmark)" stroke-width="28" stroke-linecap="round"/><circle cx="100" cy="100" r="18" fill="currentColor"/></svg>Cuff AI</a><span class="sp"></span>
     <a class="l" href="./#business">For business</a><a class="l" href="app/">Use in browser</a><a class="l keep" href="pricing.html" aria-current="page">Pricing</a>
     <a class="l" href="console/">Sign in</a><a class="l keep" href="./#download">Download</a></nav>
 

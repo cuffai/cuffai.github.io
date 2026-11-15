@@ -47,8 +47,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Robot
 button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:none;cursor:pointer}
 .wrap{max-width:520px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
 .top{display:flex;align-items:center;gap:10px;padding:6px 2px 18px}
-.mark{width:28px;height:28px;border-radius:8px;flex:none;background:conic-gradient(from 225deg,var(--l1),var(--l2),var(--l3),var(--l4),var(--l5),var(--l6),var(--l1));
-  box-shadow:inset 0 0 0 6.5px var(--surface),0 1px 3px rgba(0,0,0,.15)}
+.mark{width:28px;height:28px;flex:none;display:block;color:var(--ink)}
 .who{min-width:0;flex:1}
 .who b{display:block;font-size:17px;font-weight:650;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who span{font-size:13px;color:var(--ink3)}
@@ -109,7 +108,7 @@ button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:non
 @keyframes up{from{transform:translateY(100%)}}
 
 .welcome{text-align:center;padding:40px 8px}
-.welcome .mark{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;box-shadow:inset 0 0 0 15px var(--surface),0 2px 8px rgba(0,0,0,.15)}
+.welcome .mark{width:64px;height:64px;margin:0 auto 18px}
 .welcome h1{font-size:28px;letter-spacing:-.03em;margin:0 0 8px}
 .welcome p{color:var(--ink2);margin:0 auto 12px;max-width:34ch}
 .offline{background:var(--redbg);color:var(--red);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:550;margin-bottom:12px}
@@ -126,6 +125,7 @@ button{font:inherit;color:inherit;letter-spacing:inherit;border:0;background:non
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+const MARK = '<svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="cuffmark" gradientUnits="userSpaceOnUse" x1="100" y1="175" x2="100" y2="25"><stop offset="0" stop-color="#16A6B8"/><stop offset=".3" stop-color="#2EB872"/><stop offset=".5" stop-color="#9FBF1F"/><stop offset=".7" stop-color="#F2A516"/><stop offset=".85" stop-color="#FA6A2A"/><stop offset="1" stop-color="#F2364A"/></linearGradient></defs><path d="M149.5 149.5A70 70 0 1 1 149.5 50.5" fill="none" stroke="url(#cuffmark)" stroke-width="28" stroke-linecap="round"/><circle cx="100" cy="100" r="18" fill="currentColor"/></svg>';
 "use strict";
 const RELAY = "https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-relay";
 const TITLES = ["Off", "Look only", "Suggest edits", "Suggest changes", "Suggest + websites", "Make changes", "Full trust"];
@@ -246,7 +246,7 @@ async function setLevel(n) {
 function render() {
   const app = $("app");
   if (!PAIRS.length) {
-    app.innerHTML = `<div class="welcome"><div class="mark"></div><h1>Cuff Remote</h1>
+    app.innerHTML = `<div class="welcome">${MARK}<h1>Cuff Remote</h1>
       <p>Control the AI on your computer from your phone.</p>
       <p>On your computer, open Cuff and click <b>Pair my phone</b>. Then scan the code with this phone's camera.</p></div>`;
     return;
@@ -256,7 +256,7 @@ function render() {
   const status = err === "unpaired" ? ["off", "Unpaired"] : err ? ["off", "Can't connect"] : !S ? ["", "Connecting…"] : stale ? ["off", "Computer offline"] : ["on", "Connected"];
   const lvl = S ? S.level : 0;
   document.documentElement.style.setProperty("--accent", `var(--l${lvl})`);
-  let html = `<div class="top"><div class="mark"></div><div class="who"><b>${esc(S ? S.computer : name)}</b>
+  let html = `<div class="top">${MARK}<div class="who"><b>${esc(S ? S.computer : name)}</b>
     <span class="conn ${status[0]}"><i></i>${status[1]}${S && stale ? " · last seen " + ago(S.ts) + " ago" : ""}</span></div>
     <button class="iconbtn" id="menu" aria-label="Paired computers">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div>`;

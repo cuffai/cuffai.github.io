@@ -327,6 +327,7 @@ dialog .actions{margin-top:22px;justify-content:flex-end}
 textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 .brand{white-space:nowrap}
 .getapp{white-space:nowrap}
+.brand .mark{width:30px;height:30px;flex:none;display:block;background:none;box-shadow:none;border-radius:0;color:var(--ink)}
 .getapp.plan{font-weight:700;color:var(--ink2)}
 .getapp.testpay{color:#8A5A00;background:#FFF3D6;border-color:#F2C14E;cursor:help}
 @media (prefers-color-scheme:dark){.getapp.testpay{color:#F7C66B;background:rgba(242,165,22,.14);border-color:rgba(242,165,22,.45)}}
@@ -446,7 +447,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 <div class="ambient" aria-hidden="true"></div>
 <div class="shell">
   <header class="topbar">
-    <a class="brand" href="../" style="text-decoration:none;color:inherit"><span class="mark" aria-hidden="true"></span>Cuff AI<span class="webtag">Web</span></a>
+    <a class="brand" href="../" style="text-decoration:none;color:inherit"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="cuffmark" gradientUnits="userSpaceOnUse" x1="100" y1="175" x2="100" y2="25"><stop offset="0" stop-color="#16A6B8"/><stop offset=".3" stop-color="#2EB872"/><stop offset=".5" stop-color="#9FBF1F"/><stop offset=".7" stop-color="#F2A516"/><stop offset=".85" stop-color="#FA6A2A"/><stop offset="1" stop-color="#F2364A"/></linearGradient></defs><path d="M149.5 149.5A70 70 0 1 1 149.5 50.5" fill="none" stroke="url(#cuffmark)" stroke-width="28" stroke-linecap="round"/><circle cx="100" cy="100" r="18" fill="currentColor"/></svg>Cuff AI<span class="webtag">Web</span></a>
     <div class="right">
       <div class="state" id="state"><span class="dot"></span><span id="statetext">Ready</span></div>
       <span class="getapp testpay" id="testchip" hidden title="Stripe is in test mode. No real payments are taken, and Pro bought here is only for testing.">Test payments</span>
