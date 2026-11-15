@@ -118,6 +118,10 @@ h2.sec{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.035em;line-height:1.1;m
 .dl b{font-size:18px;letter-spacing:-.02em}
 .dl span{color:var(--ink3);font-size:14px}
 
+.winnote{margin:16px 0 0;padding:14px 18px;border-radius:14px;background:var(--surface);box-shadow:var(--shadow);border-left:4px solid var(--l1);max-width:760px}
+.winnote b{font-weight:650}
+.winnote p{margin:4px 0 0;font-size:14.5px;color:var(--ink2)}
+.winnote a{color:var(--ink2)}
 footer{padding:32px 0 48px;color:var(--ink3);font-size:14px;border-top:1px solid var(--hair)}
 footer a{color:var(--ink2)}
 [hidden]{display:none!important}
@@ -253,6 +257,12 @@ footer a{color:var(--ink2)}
     <a href="https://github.com/cuffai/cuffai.github.io/releases/latest/download/Cuff-AI-macOS.dmg" data-os="mac"><div class="card"><b>macOS</b><span>Apple silicon Macs · .dmg</span></div></a>
     <a href="https://github.com/cuffai/cuffai.github.io/releases/latest/download/Cuff-AI-Linux.AppImage" data-os="linux"><div class="card"><b>Linux</b><span>AppImage · .deb on the releases page</span></div></a>
   </div>
+  <div class="winnote" id="winnote" hidden>
+    <b>On Windows: if you see "Windows protected your PC"</b>
+    <p>Windows shows this for new apps whose publisher it doesn't know yet. Click <b>More info</b>, check the file is
+      Cuff-AI-Windows-Setup.exe, then click <b>Run anyway</b>. Every download's fingerprint is listed on the
+      <a href="https://github.com/cuffai/cuffai.github.io/releases/latest">release page</a> (SHA256SUMS.txt) if you'd like to check it.</p>
+  </div>
   <p class="small">All versions: <a href="https://github.com/cuffai/cuffai.github.io/releases">releases page</a> · No install: <a href="app/">use Cuff AI Web</a> · Phone remote: <a href="remote/">open on your phone</a></p>
 </div></section>
 
@@ -277,6 +287,7 @@ tabs.forEach((b, i) => {
 /* point the download at this computer */
 const ua = navigator.userAgent, os = /Windows/.test(ua) ? "win" : /Mac/.test(ua) && !/iPhone|iPad/.test(ua) ? "mac" : /Linux/.test(ua) && !/Android/.test(ua) ? "linux" : "";
 if (os) document.querySelector(`[data-os="${os}"]`).firstElementChild.classList.add("me");
+if (os === "win") document.getElementById("winnote").hidden = false;
 
 /* only offer downloads that really exist in the latest public release */
 (async () => {
