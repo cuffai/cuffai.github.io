@@ -76,7 +76,7 @@ h1{font-size:clamp(40px,6vw,62px);line-height:1.02;letter-spacing:-.045em;margin
 
 section.more{padding:70px 0 10px}
 h3.sec{font-size:clamp(26px,3vw,34px);letter-spacing:-.03em;margin:0 0 20px;text-align:center}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:s}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;counter-reset:s}
 .step{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:22px}
 .step b{display:block;font-size:17px;margin-bottom:4px}
 .step b::before{counter-increment:s;content:counter(s);display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--fill);font-size:13.5px;margin-right:10px}
@@ -115,7 +115,7 @@ footer a{color:var(--ink2)}
 
   <header class="top">
     <h1>Simple pricing</h1>
-    <p class="lede">Companies pay per person, and the first three people are free. For individuals, the desktop app is free.</p>
+    <p class="lede">The desktop app is free for everyone, with no account and no time limit. Companies pay per person for the admin console, and the first three people are free.</p>
     <div class="switch" role="tablist" aria-label="Who it's for">
       <button role="tab" id="t-co" aria-selected="true" aria-controls="co">For business</button>
       <button role="tab" id="t-you" aria-selected="false" aria-controls="you">For individuals</button>
@@ -139,8 +139,8 @@ footer a{color:var(--ink2)}
           </ul>
         </article>
         <article class="plan hl"><span class="badge">Most popular</span>
-          <h2>Pro</h2><p class="for">Cuff's own AI and the full Cuff AI Web. No AI key needed.</p>
-          <p class="amt">$12<span>/month</span></p><p class="per">Cancel any time.</p>
+          <h2>Pro</h2><p class="for">For people without their own AI key: Cuff's AI and the full Cuff AI Web in your browser.</p>
+          <p class="amt">$12<span>/month</span></p><p class="per">Cancel any time. Have your own Claude or OpenAI key? Free already covers the desktop app.</p>
           <a class="go" href="app/?plan=pro" id="getpro">Get Pro</a>
           <a class="alt" href="app/">Sign in with your email, pay securely with Stripe</a>
           <ul>
@@ -199,6 +199,7 @@ footer a{color:var(--ink2)}
           </ul>
         </article>
       </div>
+      <p class="note"><b>More than 100 people?</b> Enterprise has volume pricing. <a href="console/?plan=enterprise">Get started</a> and we'll quote you.</p>
       <p class="note"><b>Early access:</b> organisations created before 15 November 2026 keep Team free until 15 December 2026. New organisations start on Starter and can upgrade any time from the console.
         Each person can enrol up to 3 computers.</p>
     </div>
@@ -214,6 +215,7 @@ footer a{color:var(--ink2)}
         <div class="step"><b>Sign in</b><p>Use your work email and the 6-digit code we send you.</p></div>
         <div class="step"><b>Name your organisation</b><p>You become its super admin. Cuff creates the key that signs your policies.</p></div>
         <div class="step"><b>You're in</b><p>You land in the console. Invite your team and enrol computers with one command.</p></div>
+        <div class="step"><b>See every agent</b><p>Within about a minute, each enrolled computer's AI agents show up in your console. Set one company dial level and it's applied everywhere.</p></div>
       </div>
     </section>
 
@@ -242,6 +244,8 @@ footer a{color:var(--ink2)}
       <h3 class="sec">Questions</h3>
       <div class="faq">
         <details><summary>What can I download for free?</summary><p>The whole Cuff AI desktop app for Windows, macOS and Linux: the dial, review and undo, the agent scan, the phone remote and Cuff for Chrome. There's no time limit and no account. Pro adds Cuff's own AI, level 5 and downloads in Cuff AI Web, and phone approvals in Chrome.</p></details>
+        <details><summary>I already have a Claude or OpenAI key. Do I need Pro?</summary><p>Usually not. The desktop app is the same on Free and Pro, and Cuff AI Web works with your own key on Free. Pro is for people who want Cuff's AI without a key, or who want level 5 and folder downloads in Cuff AI Web, or phone approvals in Chrome.</p></details>
+        <details><summary>Can I use Cuff without installing anything?</summary><p>Yes. Cuff AI Web runs in your browser, free with your own Claude or OpenAI key. Controlling agents like Claude Code on your computer, and the company console's view of your computers, need the desktop app.</p></details>
         <details><summary>Do my employees pay anything?</summary><p>No. Each computer runs the same free app. Your company pays per person for the console, and the first three people are free.</p></details>
         <details><summary>Do I need a card for the Free plan?</summary><p>No. Download the app or open Cuff AI Web and start. Free stays free.</p></details>
         <details><summary>What does Pro give me on the desktop and in Chrome?</summary><p>The desktop app and Chrome work fully on Free. Pro adds Cuff's own AI in Cuff AI Web, so you don't need a key, and in Chrome it lets you approve protected sites from your phone and keeps your full history. Sign in in either app to show Pro there.</p></details>
