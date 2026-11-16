@@ -1,0 +1,106 @@
+# Signs the Windows installers in a release with Azure Artifact Signing, so Windows shows
+# "Cuff AI" as the publisher instead of "Unknown publisher".
+#
+# Runs by itself whenever a release is published, and can be run by hand for an existing release
+# (Actions > Sign Windows installers > Run workflow, then type the tag, e.g. v0.2.0).
+#
+# It does nothing until signing is set up. Add these in Settings > Secrets and variables > Actions:
+#   Variables: ARTIFACT_SIGNING_ENDPOINT   e.g. https://eus.codesigning.azure.net/  (your account's region)
+#              ARTIFACT_SIGNING_ACCOUNT    the Artifact Signing account name
+#              ARTIFACT_SIGNING_PROFILE    the certificate profile name
+#   Secrets:   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#              (an app registration with a federated credential for this repo, holding the
+#               "Artifact Signing Certificate Profile Signer" role on the account)
+#
+# Files already signed are left alone, so running it twice is safe. SHA256SUMS.txt is updated to match.
+name: Sign Windows installers
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sign, e.g. v0.2.0"
+        required: true
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: sign-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    if: ${{ vars.ARTIFACT_SIGNING_ACCOUNT != '' && vars.ARTIFACT_SIGNING_PROFILE != '' && vars.ARTIFACT_SIGNING_ENDPOINT != '' }}
+    runs-on: windows-2025
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Download the Windows installers
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          gh release download $env:TAG -R $env:GITHUB_REPOSITORY -D out -p "*.exe" -p "*.msi" -p "SHA256SUMS.txt"
+          $todo = @()
+          foreach ($f in Get-ChildItem out -Include *.exe,*.msi -Recurse) {
+            $s = Get-AuthenticodeSignature $f.FullName
+            if ($s.Status -eq "Valid") { Write-Host "$($f.Name) is already signed by $($s.SignerCertificate.Subject)" }
+            else { $todo += $f.Name; Copy-Item $f.FullName "unsigned-$($f.Name)" }
+          }
+          if ($todo.Count -eq 0) { Write-Host "Nothing to sign." }
+          "TODO=$($todo -join ',')" | Out-File -Append $env:GITHUB_ENV
+
+      - name: Azure login
+        if: env.TODO != ''
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign
+        if: env.TODO != ''
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\out
+          files-folder-filter: exe,msi
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Check the signatures, then replace the release files
+        if: env.TODO != ''
+        shell: pwsh
+        run: |
+          $names = $env:TODO -split ","
+          foreach ($n in $names) {
+            $s = Get-AuthenticodeSignature "out/$n"
+            if ($s.Status -ne "Valid") { throw "$n did not come out with a valid signature ($($s.Status)); the release was not changed." }
+            Write-Host "$n signed by $($s.SignerCertificate.Subject)"
+          }
+          # keep the fingerprint list in step with the signed files
+          if (Test-Path out/SHA256SUMS.txt) {
+            $lines = Get-Content out/SHA256SUMS.txt | ForEach-Object {
+              $parts = $_ -split "\s+", 2
+              $file = $parts[1].TrimStart("*")
+              if ($names -contains $file) { "$((Get-FileHash "out/$file" -Algorithm SHA256).Hash.ToLower())  $file" } else { $_ }
+            }
+            [IO.File]::WriteAllText("$PWD/out/SHA256SUMS.txt", (($lines -join "`n") + "`n"))
+            $names += "SHA256SUMS.txt"
+          }
+          gh release upload $env:TAG -R $env:GITHUB_REPOSITORY --clobber ($names | ForEach-Object { "out/$_" })
+
+      - name: Keep the unsigned originals with this run
+        if: env.TODO != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-originals-${{ env.TAG }}
+          path: unsigned-*
+          retention-days: 30
