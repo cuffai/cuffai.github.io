@@ -57,6 +57,19 @@ h1{font-size:clamp(36px,4.8vw,56px);line-height:1.04;letter-spacing:-.045em;marg
 .shot .bar i{width:10px;height:10px;border-radius:50%;background:#3A404C}
 .shot img{aspect-ratio:16/10;width:100%;height:auto;object-fit:cover;object-position:top left}
 
+/* three steps */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-bottom:40px}
+.step{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:20px 22px}
+.step .n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-weight:750;font-size:15px;color:#0F131B;background:var(--c)}
+.step h3{font-size:18px;letter-spacing:-.02em;margin:12px 0 4px}
+.step p{margin:0;font-size:15px;color:var(--ink2)}
+
+/* team day one */
+.dayone{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:20px 24px;margin:0 0 28px}
+.dayone h3{font-size:18px;letter-spacing:-.02em;margin:0 0 10px}
+.dayone ol{margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 24px;font-size:15px;color:var(--ink2)}
+.dayone b{color:var(--ink)}
+
 /* two paths */
 .paths{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:48px}
 .path{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:24px 26px;display:grid;grid-template-rows:auto auto 1fr auto;gap:0}
@@ -126,13 +139,13 @@ footer{padding:32px 0 48px;color:var(--ink3);font-size:14px;border-top:1px solid
 footer a{color:var(--ink2)}
 [hidden]{display:none!important}
 
-@media (max-width:1000px){.plans{grid-template-columns:repeat(2,minmax(0,1fr))}.levels{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:1000px){.plans,.dayone ol{grid-template-columns:repeat(2,minmax(0,1fr))}.levels{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:860px){
-  .hero,.paths,.tour,.you,.dl{grid-template-columns:1fr}
+  .hero,.paths,.tour,.you,.dl,.steps{grid-template-columns:1fr}
   nav a.l{display:none} nav a.l.keep{display:inline;margin-left:14px}
   .hero{padding-top:8px}
 }
-@media (max-width:560px){.plans,.mini{grid-template-columns:1fr}nav a.signin{display:none}}
+@media (max-width:560px){.plans,.mini,.dayone ol{grid-template-columns:1fr}nav a.signin{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
@@ -144,13 +157,20 @@ footer a{color:var(--ink2)}
 
   <div class="hero">
     <div>
-      <h1>Control every AI agent on your company's computers.</h1>
-      <p class="lede">See which agents are running, cap what they may do with a signed company policy, and stop the ones nobody approved. All from one console.</p>
-      <div class="cta"><a class="btn" href="console/?plan=starter">Start free for your team</a><a class="btn sec" href="#download">Download the free app</a></div>
-      <p class="small">Free for up to 3 people, no card. Works with Claude Code, Codex, Gemini, Cursor and your own bots, on Windows, macOS and Linux.</p>
+      <h1>Decide how much your AI agents are allowed to do.</h1>
+      <p class="lede">AI agents like Claude Code, Codex and Cursor can read your files, run commands and use your keys. Cuff gives each one a dial, from no access to full trust, so you choose what it may touch. On your own computer, or on every computer in your company.</p>
+      <div class="cta"><a class="btn" href="#download" id="herodl">Download the free app</a><a class="btn sec" href="#business">Set it up for a team</a></div>
+      <p class="small" id="herosmall">The app is free, with no account. Teams are free for up to 3 people. Works with Claude Code, Codex, Gemini, Cursor and your own bots, on Windows, macOS and Linux.</p>
     </div>
     <div class="shot"><div class="bar"><i></i><i></i><i></i></div>
-      <img src="shots/console-overview.webp" width="1600" height="1000" alt="The Cuff company console: a company dial set to level 3, 7 AI agents, 2 computers and recent activity"></div>
+      <img src="shots/app-dial.webp" width="1600" height="1000" alt="The Cuff desktop app: the dial at level 2, start Claude Code, and the agent scan"></div>
+  </div>
+
+  <!-- what Cuff does, in three steps -->
+  <div class="steps">
+    <div class="step"><span class="n" style="--c:var(--l1)">1</span><h3>Install the free app</h3><p>A short walkthrough sets it up. No terminal, no account.</p></div>
+    <div class="step"><span class="n" style="--c:var(--l3)">2</span><h3>Start your agent through Cuff</h3><p>It begins with no access. Your SSH keys, passwords and cloud logins stay hidden from it.</p></div>
+    <div class="step"><span class="n" style="--c:var(--l5)">3</span><h3>Turn the dial as you trust it</h3><p>Let it look, suggest, then make changes. Review what it did and undo anything.</p></div>
   </div>
 
   <!-- the two ways to use Cuff, side by side -->
@@ -186,6 +206,15 @@ footer a{color:var(--ink2)}
 <section id="business"><div class="wrap">
   <h2 class="sec">For business: one console for every agent.</h2>
   <p class="sub">Each computer runs the free Cuff app and reports in about once a minute. Admins see and control everything from the browser.</p>
+  <div class="dayone">
+    <h3>Your first day</h3>
+    <ol>
+      <li><b>Create your organisation.</b> Free for up to 3 people, no card.</li>
+      <li><b>Send the join code.</b> Each person installs the free app and enters it.</li>
+      <li><b>See every agent.</b> Within about a minute, each computer's AI agents show up in your console.</li>
+      <li><b>Set one limit.</b> Pick a company dial level. It's signed with your company's key and applied on every computer.</li>
+    </ol>
+  </div>
   <div class="tour">
     <div>
       <div class="tabs" role="tablist" aria-label="Console screens">
@@ -304,6 +333,12 @@ if (os === "win") document.getElementById("winnote").hidden = false;
     a.removeAttribute("href"); a.setAttribute("aria-disabled", "true");
     a.firstElementChild.classList.add("soon");
     a.querySelector("span").textContent = "Coming soon";
+  }
+  /* no desktop app published yet: don't send the hero button to dead cards */
+  if (![...document.querySelectorAll("[data-os]")].some(a => a.hasAttribute("href"))) {
+    const b = document.getElementById("herodl");
+    b.textContent = "Try Cuff AI Web"; b.href = "app/";
+    document.getElementById("herosmall").textContent = "The desktop app is coming soon. Cuff AI Web runs in your browser today, free with your own Claude or OpenAI key.";
   }
 })();
 </script>
