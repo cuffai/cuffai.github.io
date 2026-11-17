@@ -237,6 +237,20 @@ $("ssobtn").onclick = async (e) => {
 };
 async function ssoReturn() {
   const p = new URLSearchParams(location.search);
+  if (p.has("saml") || p.has("sso_error")) {
+    const handoff = p.get("saml"), msg = p.get("sso_error");
+    p.delete("saml"); p.delete("sso_error");
+    history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
+    const bind = store.get("cuffconsole.ssobind") || ""; store.set("cuffconsole.ssobind", null);
+    if (msg) { show("signin"); $("autherr").textContent = msg; return true; }
+    try {
+      const r = await post(API_CP, { op: "saml_finish", args: { handoff, bind } });
+      TOKEN = r.token; store.set("cuffconsole.token", TOKEN); store.set("cuffconsole.org", r.org_id);
+      await start();
+      if (r.joined) toast("Welcome. You joined through your company's single sign-on.");
+    } catch (er) { TOKEN = null; store.set("cuffconsole.token", null); show("signin"); $("autherr").textContent = er.message; }
+    return true;
+  }
   if (!p.has("state") || !(p.has("code") || p.has("error"))) return false;
   const code = p.get("code"), state = p.get("state"), err = p.get("error_description") || p.get("error");
   for (const k of ["code", "state", "error", "error_description", "session_state", "iss", "scope", "authuser", "prompt", "hd"]) p.delete(k);
@@ -1165,6 +1179,8 @@ async function renderSso() {
   const box = $("sso"); if (!box) return;
   let c; try { c = await cp("sso_get"); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
   const redirect = `${location.origin}/console/`;
+  const saml = c.protocol === "saml";
+  const spEntity = `${API_CP}/saml/metadata/${c.org_id}`, acs = `${API_CP}/saml/acs`;
   const domainsHtml = (c.domains || []).map((d) => `<li style="margin:6px 0">
       <b class="mono">${esc(d.domain)}</b> ${d.verified ? pill("ok", "Verified") : d.taken ? pill("bad", "Verified by another organisation") : pill("warn", "Not verified")}
       ${!d.verified && c.can_edit && !d.taken ? `<div class="small muted" style="margin:4px 0">Add a DNS <b>TXT</b> record, then check:
@@ -1173,22 +1189,41 @@ async function renderSso() {
   const status = !c.configured ? pill("plain", "Off")
     : c.required ? pill("ok", "Required") : c.last_success_at ? pill("ok", "On") : pill("warn", "Not tested");
   if (!c.can_edit) {
-    box.innerHTML = `<p>${status} ${c.configured ? `Signing in through <span class="mono">${esc(c.issuer)}</span>.${c.required ? " Everyone except super admins must use it." : ""}` : "Not set up."}</p>
+    box.innerHTML = `<p>${status} ${c.configured ? `Signing in with ${saml ? "SAML" : "OpenID Connect"} through <span class="mono">${esc(c.issuer)}</span>.${c.required ? " Everyone except super admins must use it." : ""}` : "Not set up."}</p>
       ${domainsHtml ? `<ul style="padding-left:18px;margin:6px 0">${domainsHtml}</ul>` : ""}<p class="muted small">Only super admins change this.</p>`;
     return;
   }
-  box.innerHTML = `<p style="margin:0 0 8px">${status} People sign in to this console through your identity provider (Microsoft Entra ID, Okta, Google Workspace or any OpenID Connect provider) instead of an emailed code.
+  box.innerHTML = `<p style="margin:0 0 8px">${status} People sign in to this console through your identity provider (Microsoft Entra ID, Okta, Google Workspace, OneLogin, JumpCloud and others) instead of an emailed code.
       ${c.starter ? `<br><b>Single sign-on is part of Team.</b> Upgrade under Plan to switch it on.` : ""}</p>
-    <ol class="muted small" style="padding-left:18px;margin:0 0 12px">
-      <li>In your identity provider, create a <b>web</b> app (OpenID Connect) with this redirect address: <span class="mono">${esc(redirect)}</span> <button class="btn sm" type="button" id="copyredir">Copy</button></li>
-      <li>Paste its issuer, client ID and client secret below, list your company's email domains, and save.</li>
-      <li>Add each domain's DNS record and check it. People can then use <b>Sign in with SSO</b> with an email at that domain.</li>
-      <li>Sign out and sign in with SSO once to test it. After that, you can require it.</li></ol>
     <form class="form" id="ssof">
-      <label>Issuer<input name="issuer" required maxlength="300" placeholder="https://login.microsoftonline.com/<tenant id>/v2.0" value="${esc(c.issuer || "")}"></label>
-      <p class="muted small" style="margin:-6px 0 0">Entra ID: https://login.microsoftonline.com/&lt;tenant id&gt;/v2.0 · Okta: https://&lt;you&gt;.okta.com · Google: https://accounts.google.com</p>
-      <label>Client ID<input name="client_id" required maxlength="300" value="${esc(c.client_id || "")}"></label>
-      <label>Client secret<input name="client_secret" type="password" autocomplete="off" maxlength="1000" ${c.configured ? `placeholder="Saved. Leave blank to keep it."` : "required"}></label>
+      <div class="billtoggle" role="radiogroup" aria-label="Protocol"><label><input type="radio" name="protocol" value="oidc" ${saml ? "" : "checked"}> OpenID Connect</label><label><input type="radio" name="protocol" value="saml" ${saml ? "checked" : ""}> SAML 2.0</label></div>
+      <div id="sso-oidc" ${saml ? "hidden" : ""}>
+        <ol class="muted small" style="padding-left:18px;margin:0 0 12px">
+          <li>In your identity provider, create a <b>web</b> app (OpenID Connect) with this redirect address: <span class="mono">${esc(redirect)}</span> <button class="btn sm" type="button" id="copyredir">Copy</button></li>
+          <li>Paste its issuer, client ID and client secret below, list your company's email domains, and save.</li>
+          <li>Add each domain's DNS record and check it. People can then use <b>Sign in with SSO</b> with an email at that domain.</li>
+          <li>Sign out and sign in with SSO once to test it. After that, you can require it.</li></ol>
+        <label>Issuer<input name="issuer" maxlength="300" placeholder="https://login.microsoftonline.com/<tenant id>/v2.0" value="${esc(saml ? "" : c.issuer || "")}"></label>
+        <p class="muted small" style="margin:-6px 0 0">Entra ID: https://login.microsoftonline.com/&lt;tenant id&gt;/v2.0 · Okta: https://&lt;you&gt;.okta.com · Google: https://accounts.google.com</p>
+        <label>Client ID<input name="client_id" maxlength="300" value="${esc(c.client_id || "")}"></label>
+        <label>Client secret<input name="client_secret" type="password" autocomplete="off" maxlength="1000" ${c.configured && !saml ? `placeholder="Saved. Leave blank to keep it."` : ""}></label>
+      </div>
+      <div id="sso-saml" ${saml ? "" : "hidden"}>
+        <ol class="muted small" style="padding-left:18px;margin:0 0 8px">
+          <li>In your identity provider, create a SAML app with these values (or import the metadata address):</li></ol>
+        <dl class="kv" style="margin:0 0 10px">
+          <dt>Identifier (Entity ID)</dt><dd class="mono" style="word-break:break-all">${esc(spEntity)}</dd>
+          <dt>Reply URL (ACS)</dt><dd class="mono" style="word-break:break-all">${esc(acs)}</dd>
+          <dt>Metadata</dt><dd class="mono" style="word-break:break-all">${esc(spEntity)} <button class="btn sm" type="button" id="copymeta">Copy</button></dd>
+          <dt>Name ID</dt><dd>The person's email address (or send it as an email attribute)</dd></dl>
+        <ol class="muted small" style="padding-left:18px;margin:0 0 12px" start="2">
+          <li>Paste your identity provider's details below, list your company's email domains, and save.</li>
+          <li>Add each domain's DNS record and check it. Sign-ins start from <b>Sign in with SSO</b> on the Cuff console.</li>
+          <li>Sign out and sign in with SSO once to test it. After that, you can require it.</li></ol>
+        <label>Identity provider entity ID (Issuer)<input name="saml_issuer" maxlength="300" placeholder="https://sts.windows.net/<tenant id>/ or http://www.okta.com/..." value="${esc(saml ? c.issuer || "" : "")}"></label>
+        <label>Identity provider sign-in URL<input name="idp_sso_url" maxlength="1000" placeholder="https://login.microsoftonline.com/<tenant id>/saml2" value="${esc(c.idp_sso_url || "")}"></label>
+        <label>Signing certificate (PEM)<textarea name="idp_cert" rows="5" spellcheck="false" class="mono" placeholder="-----BEGIN CERTIFICATE-----">${esc(c.idp_cert || "")}</textarea></label>
+      </div>
       <label>Company email domains, separated by commas<input name="domains" placeholder="company.com, company.co.uk" value="${esc((c.domains || []).map((d) => d.domain).join(", "))}"></label>
       <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="auto_join" ${c.auto_join ? "checked" : ""}> Let people with an email at a verified domain join automatically, as employees</label>
       <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="required" ${c.required ? "checked" : ""} ${c.last_success_at ? "" : "disabled"}> Require single sign-on for everyone except super admins${c.last_success_at ? "" : " (after a first successful SSO sign-in)"}</label>
@@ -1197,12 +1232,20 @@ async function renderSso() {
       <div class="actions"><button class="btn primary">Save</button>${c.configured ? ` <button class="btn danger" type="button" id="ssooff">Turn off SSO</button>` : ""}</div>
     </form>
     ${domainsHtml ? `<h3 style="font-size:14px;margin:14px 0 4px">Domains</h3><ul style="padding-left:18px;margin:0">${domainsHtml}</ul>` : ""}`;
-  $("copyredir").onclick = () => navigator.clipboard.writeText(redirect).then(() => toast("Copied."), () => toast("Copy it by selecting the text.", true));
+  const copyText = (t) => navigator.clipboard.writeText(t).then(() => toast("Copied."), () => toast("Copy it by selecting the text.", true));
+  $("copyredir").onclick = () => copyText(redirect);
+  $("copymeta").onclick = () => copyText(spEntity);
+  for (const r of box.querySelectorAll('input[name="protocol"]')) r.onchange = () => {
+    const v = box.querySelector('input[name="protocol"]:checked').value; $("sso-oidc").hidden = v !== "oidc"; $("sso-saml").hidden = v !== "saml";
+  };
   $("ssof").onsubmit = async (e) => {
     e.preventDefault(); const f = e.target, b = e.submitter; $("ssoerr").textContent = ""; b.disabled = true;
+    const proto = f.querySelector('input[name="protocol"]:checked').value;
+    const common = { domains: f.domains.value.split(/[\s,;]+/).filter(Boolean), auto_join: f.auto_join.checked, required: f.required.checked };
     try {
-      await cp("sso_save", { issuer: f.issuer.value.trim(), client_id: f.client_id.value.trim(), client_secret: f.client_secret.value,
-        domains: f.domains.value.split(/[\s,;]+/).filter(Boolean), auto_join: f.auto_join.checked, required: f.required.checked });
+      await cp("sso_save", proto === "saml"
+        ? { protocol: "saml", issuer: f.saml_issuer.value.trim(), idp_sso_url: f.idp_sso_url.value.trim(), idp_cert: f.idp_cert.value, ...common }
+        : { protocol: "oidc", issuer: f.issuer.value.trim(), client_id: f.client_id.value.trim(), client_secret: f.client_secret.value, ...common });
       toast("Single sign-on saved."); renderSso();
     } catch (er) { $("ssoerr").textContent = er.message; } finally { b.disabled = false; }
   };
