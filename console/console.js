@@ -81,12 +81,12 @@ const store = {
 let TOKEN = (LOCAL && qs.get("token")) || store.get("cuffconsole.token");
 let ME = null, ORG = null, BILL = null, PEOPLE = [], STRUCT = { departments: [], teams: [] }, WS = [];
 
-const ROLES = { super_admin: "Super admin", admin: "Administrator", security_manager: "Security manager", team_manager: "Team manager", employee: "Employee" };
+const ROLES = { super_admin: "Super admin", admin: "Administrator", security_manager: "Security manager", team_manager: "Team manager", employee: "Employee", auditor: "Auditor (read-only)" };
 const PERMS = {
   "org.settings": ["super_admin"], "members.manage": ["super_admin", "admin"], "teams.manage": ["super_admin", "admin"],
   "workstations.manage": ["super_admin", "admin"], "agents.manage": ["super_admin", "admin"], "agents.team": ["super_admin", "admin", "team_manager"],
-  "policy.manage": ["super_admin", "security_manager"], "audit.read": ["super_admin", "admin", "security_manager"],
-  "security.read": ["super_admin", "admin", "security_manager"], "security.act": ["super_admin", "admin", "security_manager"],
+  "policy.manage": ["super_admin", "security_manager"], "audit.read": ["super_admin", "admin", "security_manager", "auditor"],
+  "security.read": ["super_admin", "admin", "security_manager", "auditor"], "security.act": ["super_admin", "admin", "security_manager"],
 };
 const can = (perm) => !!ORG && (PERMS[perm] || []).includes(ORG.me.role);
 const mayAssign = (role) => ORG.me.role === "super_admin" || (ORG.me.role === "admin" && ["team_manager", "employee"].includes(role));
@@ -919,9 +919,9 @@ PAGES.policies = async (main) => {
     <section class="card"><h2>What each role can do</h2>${table(["Permission", ...Object.values(ROLES)], [
       ["Change organisation settings", "org.settings"], ["Invite and manage people", "members.manage"], ["Manage teams and departments", "teams.manage"],
       ["Enrol and revoke workstations", "workstations.manage"], ["Manage every agent", "agents.manage"], ["Manage their team's agents", "agents.team"],
-      ["Publish policies", "policy.manage"], ["Read the audit log", "audit.read"]].map(([l, k]) =>
+      ["Publish policies", "policy.manage"], ["See security findings", "security.read"], ["Act on findings (scan, stop, disable)", "security.act"], ["Read the audit log", "audit.read"]].map(([l, k]) =>
       `<tr><td>${esc(l)}</td>${Object.keys(ROLES).map((r) => `<td>${PERMS[k].includes(r) ? pill("ok", "Yes") : '<span class="muted">—</span>'}</td>`).join("")}</tr>`), "")}
-      <p class="muted small">Team managers manage agents of their own team only. Everyone can see the organisation; employees and team managers see only their own and their team's agents and workstations.</p></section>`;
+      <p class="muted small">Team managers manage agents of their own team only. Everyone can see the organisation; employees and team managers see only their own and their team's agents and workstations. Auditors see everything, including the audit log, and can't change anything; only a super admin can make someone an auditor.</p></section>`;
   $("copychrome").onclick = () => navigator.clipboard.writeText($("chromepol").textContent).then(() => toast("Copied."), () => toast("Copy it by selecting the text.", true));
   const f = $("pf");
   if (f) f.onsubmit = async (e) => {
