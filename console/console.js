@@ -220,6 +220,38 @@ $("codef").onsubmit = async (e) => {
 };
 $("back").onclick = () => { $("codef").hidden = true; $("emailf").hidden = false; $("email").focus(); };
 
+// ---- single sign-on (OpenID Connect) ---------------------------------------------------------------------------------
+// The work email picks the organisation (by its verified domain); the server sends the browser to that company's identity
+// provider, which sends it back here with ?code=&state=. "bind" ties the round trip to this browser tab.
+const randomHex = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (x) => x.toString(16).padStart(2, "0")).join("");
+$("ssobtn").onclick = async (e) => {
+  $("autherr").textContent = "";
+  const email = $("email").value.trim();
+  if (!email || !$("email").checkValidity()) { $("autherr").textContent = "Enter your work email first."; $("email").focus(); return; }
+  const b = e.currentTarget; b.disabled = true;
+  try {
+    const bind = randomHex(32); store.set("cuffconsole.ssobind", bind);
+    const r = await post(API_CP, { op: "sso_start", args: { email, bind } });
+    location.assign(r.url);
+  } catch (er) { $("autherr").textContent = er.message; b.disabled = false; }
+};
+async function ssoReturn() {
+  const p = new URLSearchParams(location.search);
+  if (!p.has("state") || !(p.has("code") || p.has("error"))) return false;
+  const code = p.get("code"), state = p.get("state"), err = p.get("error_description") || p.get("error");
+  for (const k of ["code", "state", "error", "error_description", "session_state", "iss", "scope", "authuser", "prompt", "hd"]) p.delete(k);
+  history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
+  const bind = store.get("cuffconsole.ssobind") || ""; store.set("cuffconsole.ssobind", null);
+  if (err) { show("signin"); $("autherr").textContent = "Your identity provider didn't sign you in: " + err; return true; }
+  try {
+    const r = await post(API_CP, { op: "sso_finish", args: { code, state, bind } });
+    TOKEN = r.token; store.set("cuffconsole.token", TOKEN); store.set("cuffconsole.org", r.org_id);
+    await start();
+    if (r.joined) toast("Welcome. You joined through your company's single sign-on.");
+  } catch (er) { TOKEN = null; store.set("cuffconsole.token", null); show("signin"); $("autherr").textContent = er.message; }
+  return true;
+}
+
 function signOut() {
   TOKEN = null; ME = null; ORG = null; store.set("cuffconsole.token", null); store.set("cuffconsole.org", null);
   closeDrawer(); $("codef").hidden = true; $("emailf").hidden = false; show("signin");
@@ -1087,6 +1119,7 @@ PAGES.settings = async (main) => {
       <dl class="kv"><dt>Policy signing key</dt><dd class="mono">${esc(ORG.policy_key_fp || "—")}</dd><dt>Created</dt><dd>${esc(stamp(ORG.created_at))}</dd></dl>
       <p class="muted small">The signing key's private half is stored encrypted on the server and never leaves it; workstations pin the fingerprint when they enrol.</p></section>
     <section class="card"><h2>Your two-step sign-in</h2><div id="mfa"></div></section></div>
+    <section class="card" style="margin-top:12px"><h2>Single sign-on (SSO)</h2><div id="sso"><p class="muted">Loading…</p></div></section>
     <section class="card" style="margin-top:12px"><h2>Plan</h2>${planCard()}</section>`;
   const f = $("of");
   if (f) f.onsubmit = async (e) => {
@@ -1095,6 +1128,7 @@ PAGES.settings = async (main) => {
     catch (er) { fail(er); }
   };
   renderMfa();
+  renderSso();
   if ($("upgradebill")) $("upgradebill").onclick = () => upgrade();
   if ($("managebill")) $("managebill").onclick = (e) => manageBilling(e.currentTarget);
 };
@@ -1124,8 +1158,69 @@ function planCard() {
       <a href="../pricing.html?for=companies" target="_blank" rel="noopener">See pricing</a></p>`;
 }
 
+// the SSO card in Settings: connect an OpenID Connect identity provider, prove the company's email domains, then require it
+async function renderSso() {
+  const box = $("sso"); if (!box) return;
+  let c; try { c = await cp("sso_get"); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const redirect = `${location.origin}/console/`;
+  const domainsHtml = (c.domains || []).map((d) => `<li style="margin:6px 0">
+      <b class="mono">${esc(d.domain)}</b> ${d.verified ? pill("ok", "Verified") : d.taken ? pill("bad", "Verified by another organisation") : pill("warn", "Not verified")}
+      ${!d.verified && c.can_edit && !d.taken ? `<div class="small muted" style="margin:4px 0">Add a DNS <b>TXT</b> record, then check:
+        <dl class="kv" style="margin:6px 0"><dt>Name</dt><dd class="mono">${esc(d.record_name)}</dd><dt>Value</dt><dd class="mono">${esc(d.record_value)}</dd></dl>
+        <button class="btn sm" type="button" data-checkdns="${esc(d.domain)}">Check DNS</button></div>` : ""}</li>`).join("");
+  const status = !c.configured ? pill("plain", "Off")
+    : c.required ? pill("ok", "Required") : c.last_success_at ? pill("ok", "On") : pill("warn", "Not tested");
+  if (!c.can_edit) {
+    box.innerHTML = `<p>${status} ${c.configured ? `Signing in through <span class="mono">${esc(c.issuer)}</span>.${c.required ? " Everyone except super admins must use it." : ""}` : "Not set up."}</p>
+      ${domainsHtml ? `<ul style="padding-left:18px;margin:6px 0">${domainsHtml}</ul>` : ""}<p class="muted small">Only super admins change this.</p>`;
+    return;
+  }
+  box.innerHTML = `<p style="margin:0 0 8px">${status} People sign in to this console through your identity provider (Microsoft Entra ID, Okta, Google Workspace or any OpenID Connect provider) instead of an emailed code.
+      ${c.starter ? `<br><b>Single sign-on is part of Team.</b> Upgrade under Plan to switch it on.` : ""}</p>
+    <ol class="muted small" style="padding-left:18px;margin:0 0 12px">
+      <li>In your identity provider, create a <b>web</b> app (OpenID Connect) with this redirect address: <span class="mono">${esc(redirect)}</span> <button class="btn sm" type="button" id="copyredir">Copy</button></li>
+      <li>Paste its issuer, client ID and client secret below, list your company's email domains, and save.</li>
+      <li>Add each domain's DNS record and check it. People can then use <b>Sign in with SSO</b> with an email at that domain.</li>
+      <li>Sign out and sign in with SSO once to test it. After that, you can require it.</li></ol>
+    <form class="form" id="ssof">
+      <label>Issuer<input name="issuer" required maxlength="300" placeholder="https://login.microsoftonline.com/<tenant id>/v2.0" value="${esc(c.issuer || "")}"></label>
+      <p class="muted small" style="margin:-6px 0 0">Entra ID: https://login.microsoftonline.com/&lt;tenant id&gt;/v2.0 · Okta: https://&lt;you&gt;.okta.com · Google: https://accounts.google.com</p>
+      <label>Client ID<input name="client_id" required maxlength="300" value="${esc(c.client_id || "")}"></label>
+      <label>Client secret<input name="client_secret" type="password" autocomplete="off" maxlength="1000" ${c.configured ? `placeholder="Saved. Leave blank to keep it."` : "required"}></label>
+      <label>Company email domains, separated by commas<input name="domains" placeholder="company.com, company.co.uk" value="${esc((c.domains || []).map((d) => d.domain).join(", "))}"></label>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="auto_join" ${c.auto_join ? "checked" : ""}> Let people with an email at a verified domain join automatically, as employees</label>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" name="required" ${c.required ? "checked" : ""} ${c.last_success_at ? "" : "disabled"}> Require single sign-on for everyone except super admins${c.last_success_at ? "" : " (after a first successful SSO sign-in)"}</label>
+      <p class="muted small" style="margin:0">${c.last_success_at ? `Last successful SSO sign-in: ${esc(stamp(c.last_success_at))}.` : "No one has signed in with SSO yet."} Super admins can always still sign in with an emailed code, so a problem with your identity provider can't lock you out.</p>
+      <p class="err" id="ssoerr"></p>
+      <div class="actions"><button class="btn primary">Save</button>${c.configured ? ` <button class="btn danger" type="button" id="ssooff">Turn off SSO</button>` : ""}</div>
+    </form>
+    ${domainsHtml ? `<h3 style="font-size:14px;margin:14px 0 4px">Domains</h3><ul style="padding-left:18px;margin:0">${domainsHtml}</ul>` : ""}`;
+  $("copyredir").onclick = () => navigator.clipboard.writeText(redirect).then(() => toast("Copied."), () => toast("Copy it by selecting the text.", true));
+  $("ssof").onsubmit = async (e) => {
+    e.preventDefault(); const f = e.target, b = e.submitter; $("ssoerr").textContent = ""; b.disabled = true;
+    try {
+      await cp("sso_save", { issuer: f.issuer.value.trim(), client_id: f.client_id.value.trim(), client_secret: f.client_secret.value,
+        domains: f.domains.value.split(/[\s,;]+/).filter(Boolean), auto_join: f.auto_join.checked, required: f.required.checked });
+      toast("Single sign-on saved."); renderSso();
+    } catch (er) { $("ssoerr").textContent = er.message; } finally { b.disabled = false; }
+  };
+  if ($("ssooff")) $("ssooff").onclick = async () => {
+    if (!(await confirmBox("Turn off single sign-on?", "People will sign in with emailed codes again, and everyone signed in through SSO is signed out.", "Turn off"))) return;
+    try { await cp("sso_remove"); toast("Single sign-on is off."); renderSso(); } catch (er) { fail(er); }
+  };
+  for (const btn of box.querySelectorAll("[data-checkdns]")) btn.onclick = async () => {
+    btn.disabled = true;
+    try { await cp("sso_verify_domain", { domain: btn.dataset.checkdns }); toast(`${btn.dataset.checkdns} is verified.`); renderSso(); }
+    catch (er) { fail(er); btn.disabled = false; }
+  };
+}
+
 function renderMfa() {
   const box = $("mfa"); if (!box) return;
+  if (ME.sso_org) {
+    box.innerHTML = `<p>${pill("ok", "Single sign-on")} You signed in through your company's identity provider, which handles the second step. Two-step sign-in here applies to email-code sign-in.</p>`;
+    return;
+  }
   if (ME.mfa.enabled) {
     box.innerHTML = `<p>${pill("ok", "On")} You're asked for a code from your authenticator app before making changes (once every 12 hours per sign-in).</p>
       <form class="form" id="mfaoff"><label>Code, to turn it off<input name="code" inputmode="numeric" maxlength="6" required autocomplete="one-time-code"></label><p class="err"></p>
@@ -1144,4 +1239,4 @@ function renderMfa() {
   }
 }
 
-start();
+ssoReturn().then((handled) => { if (!handled) start(); });

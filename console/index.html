@@ -26,11 +26,12 @@
   <div class="auth">
     <div class="brandrow"><svg class="mark" viewBox="0 0 200 200" aria-hidden="true"><use href="#emblem"/></svg><span class="brand">Cuff AI <span>Console</span></span></div>
     <h1>Sign in to your organisation</h1>
-    <p class="muted">Manage your company's AI agents, computers and people. We'll email you a 6-digit code.</p>
+    <p class="muted">Manage your company's AI agents, computers and people. We'll email you a 6-digit code, or you can sign in with your company's single sign-on.</p>
     <form id="emailf" class="stack">
       <label for="email">Work email</label>
       <input id="email" type="email" autocomplete="email" required placeholder="you@company.com">
       <button class="btn primary">Email me a code</button>
+      <button class="btn" type="button" id="ssobtn">Sign in with SSO</button>
     </form>
     <form id="codef" class="stack" hidden>
       <label for="code">6-digit code from your email</label>
