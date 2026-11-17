@@ -1120,6 +1120,7 @@ PAGES.settings = async (main) => {
       <p class="muted small">The signing key's private half is stored encrypted on the server and never leaves it; workstations pin the fingerprint when they enrol.</p></section>
     <section class="card"><h2>Your two-step sign-in</h2><div id="mfa"></div></section></div>
     <section class="card" style="margin-top:12px"><h2>Single sign-on (SSO)</h2><div id="sso"><p class="muted">Loading…</p></div></section>
+    ${admin ? `<section class="card" style="margin-top:12px"><h2>Automatic provisioning (SCIM)</h2><div id="scim"><p class="muted">Loading…</p></div></section>` : ""}
     <section class="card" style="margin-top:12px"><h2>Plan</h2>${planCard()}</section>`;
   const f = $("of");
   if (f) f.onsubmit = async (e) => {
@@ -1129,6 +1130,7 @@ PAGES.settings = async (main) => {
   };
   renderMfa();
   renderSso();
+  renderScim();
   if ($("upgradebill")) $("upgradebill").onclick = () => upgrade();
   if ($("managebill")) $("managebill").onclick = (e) => manageBilling(e.currentTarget);
 };
@@ -1212,6 +1214,46 @@ async function renderSso() {
     btn.disabled = true;
     try { await cp("sso_verify_domain", { domain: btn.dataset.checkdns }); toast(`${btn.dataset.checkdns} is verified.`); renderSso(); }
     catch (er) { fail(er); btn.disabled = false; }
+  };
+}
+
+// the SCIM card in Settings: the address and bearer tokens a company's identity provider uses to add and remove people
+async function renderScim() {
+  const box = $("scim"); if (!box) return;
+  let c; try { c = await cp("scim_tokens_list"); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const base = `${API_CP}/scim/v2`;
+  const copy = (text) => navigator.clipboard.writeText(text).then(() => toast("Copied."), () => toast("Copy it by selecting the text.", true));
+  box.innerHTML = `<p style="margin:0 0 8px">${c.tokens.length ? pill("ok", "On") : pill("plain", "Off")} Your identity provider (Microsoft Entra ID, Okta, OneLogin or any SCIM 2.0 provider) adds, updates, suspends and removes people here as you change them there.
+      ${c.managed_people ? `It manages <b>${c.managed_people}</b> ${c.managed_people === 1 ? "person" : "people"} now.` : ""}
+      ${c.starter ? `<br><b>Automatic provisioning is part of Team.</b> Upgrade under Plan to switch it on.` : ""}</p>
+    <dl class="kv"><dt>SCIM base address</dt><dd class="mono" style="word-break:break-all">${esc(base)} <button class="btn sm" type="button" id="copyscim">Copy</button></dd>
+      <dt>Sign-in</dt><dd>Bearer token (HTTP header)</dd><dt>Unique identifier</dt><dd><span class="mono">userName</span>: the person's email address</dd>
+      <dt>Role</dt><dd>Optional: map an attribute to <span class="mono">urn:ietf:params:scim:schemas:extension:cuff:2.0:User:role</span> with admin, security_manager, team_manager, employee or auditor. Otherwise new people join as employees.</dd>
+      <dt>Groups</dt><dd>Become Cuff teams. A person is in one team, so adding them to a group moves them into it.</dd></dl>
+    <p class="muted small" style="margin:0 0 10px">Microsoft Entra ID: Enterprise applications &gt; your app &gt; Provisioning &gt; Automatic, then paste the address as Tenant URL and a token as Secret Token.
+      Okta: your app &gt; Provisioning &gt; SCIM connector base URL, authentication mode HTTP Header. Super admins are never changed through SCIM: manage them here.
+      Turning someone off in your identity provider suspends them in Cuff and ends their single sign-on sessions.</p>
+    <h3 style="font-size:14px;margin:12px 0 4px">Tokens</h3>
+    ${c.tokens.length ? `<ul style="padding-left:18px;margin:0 0 10px">${c.tokens.map((t) => `<li style="margin:6px 0">
+        <span class="mono">…${esc(t.hint)}</span> made ${esc(when(t.created_at))}${t.created_by ? ` by ${esc(t.created_by)}` : ""},
+        ${t.last_used_at ? `last used ${esc(when(t.last_used_at))}` : "not used yet"}
+        <button class="btn ghost sm" type="button" data-revscim="${esc(t.id)}">Revoke</button></li>`).join("")}</ul>`
+      : `<p class="muted small" style="margin:0 0 10px">No tokens yet.</p>`}
+    <button class="btn primary" type="button" id="newscim" ${c.tokens.length >= 2 || c.starter ? "disabled" : ""}>Create token</button>
+    ${c.tokens.length >= 2 ? `<span class="muted small"> Two tokens at most: revoke the old one after your identity provider uses the new one.</span>` : ""}`;
+  $("copyscim").onclick = () => copy(base);
+  $("newscim").onclick = async (e) => {
+    const b = e.currentTarget; b.disabled = true;
+    let r; try { r = await cp("scim_token_create"); } catch (er) { b.disabled = false; return fail(er); }
+    modal("Your SCIM token", `<div class="form"><p class="muted" style="margin:0">Copy it into your identity provider now. It won't be shown again; Cuff keeps only a fingerprint of it.</p>
+      <div class="codebox mono" id="scimtok" style="word-break:break-all">${esc(r.token)}</div>
+      <div class="actions"><button type="button" class="btn" id="copytok">Copy token</button><button type="button" class="btn primary" data-close>Done</button></div></div>`);
+    $("copytok").onclick = () => copy(r.token);
+    renderScim();
+  };
+  for (const btn of box.querySelectorAll("[data-revscim]")) btn.onclick = async () => {
+    if (!(await confirmBox("Revoke this token?", "Your identity provider stops provisioning with it straight away.", "Revoke"))) return;
+    try { await cp("scim_token_revoke", { id: btn.dataset.revscim }); toast("Token revoked."); renderScim(); } catch (er) { fail(er); }
   };
 }
 
