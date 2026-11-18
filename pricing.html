@@ -290,5 +290,18 @@ footer a{color:var(--ink2)}
   show(!/you|individual|personal/.test(q.get("for") || ""));
 })();
 </script>
+<script>
+/* Visitor counter: sends only this page's path, the referring site's name and any ?ref= tag. No cookies, no IP address, no identifier. See privacy.html. */
+(function () {
+  try {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+    var tag = new URLSearchParams(location.search).get("ref") || "";
+    fetch("https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-hit", {
+      method: "POST", keepalive: true, headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ p: location.pathname, r: document.referrer, s: tag })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>

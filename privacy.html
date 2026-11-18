@@ -23,7 +23,7 @@ ul{padding-left:20px}
 <main>
 <p><a class="back" href="./">← Cuff AI</a></p>
 <h1>Privacy</h1>
-<p class="meta">Applies to the Cuff AI desktop app, Cuff AI Web, the phone remote and the Cuff AI Chrome extension. Last updated November 2, 2026.</p>
+<p class="meta">Applies to the Cuff AI desktop app, Cuff AI Web, the phone remote and the Cuff AI Chrome extension. Last updated November 18, 2026.</p>
 
 <h2>The short version</h2>
 <p>Cuff works on your device. It doesn't sell data, show ads or track you across sites. What it records about AI agents stays on your computer unless you choose to sync it to your phone, and that sync is end-to-end encrypted.</p>
@@ -50,8 +50,27 @@ ul{padding-left:20px}
 <li>If you use Cuff's AI (Pro), your prompts go to the AI provider to be answered and aren't stored by Cuff after the answer.</li>
 </ul>
 
+<h2>This website</h2>
+<ul>
+<li>The home, pricing and privacy pages count visits so we know whether anyone reads them. Each visit records only the date, the page, the name of the site that linked to it (for example google.com, never the full address) and a campaign tag if the link had one.</li>
+<li>No cookies, no IP address, no device or browser details and no identifier are stored, so a visit can't be tied to you. If your browser sends "Do Not Track", nothing is counted.</li>
+</ul>
+
 <h2>Your choices</h2>
 <p>You can clear the extension's activity from its popup, unlink the desktop app with <code>cuff chrome disconnect</code>, sign out at any time, and ask for your account to be deleted by contacting us through the website.</p>
 </main>
+<script>
+/* Visitor counter: sends only this page's path, the referring site's name and any ?ref= tag. No cookies, no IP address, no identifier. See privacy.html. */
+(function () {
+  try {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+    var tag = new URLSearchParams(location.search).get("ref") || "";
+    fetch("https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-hit", {
+      method: "POST", keepalive: true, headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ p: location.pathname, r: document.referrer, s: tag })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
