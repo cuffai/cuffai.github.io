@@ -432,6 +432,7 @@ function upgrade() {
       <div class="plancard later"><b>Business</b><span class="amt" data-y="${money(b.year)}" data-m="${money(b.month)}">${money(b.year)}<small> /person/month</small></span>
         <p>Approvals, live activity with a kill switch, and security alerts. Available to buy when they're released.</p></div>
     </div>
+    <p class="muted small" style="margin:6px 0 0"><b>Renewal:</b> your plan renews automatically each month or year, at the price per person shown, until you cancel under Billing. Cancelling stops the next renewal; you keep the plan to the end of the period you paid for. A company's first subscription starts with 7 days free, and the card is charged when the trial ends unless you cancel first. Adding or removing people adjusts the next invoice.</p>
     <p class="muted small" style="margin:6px 0 0">Over 100 people? Enterprise is priced on request. Payment is handled by Stripe; Cuff never sees card details.</p>
     <p class="err"></p>
     <div class="actions"><button type="button" class="btn" data-close>Not now</button><button class="btn primary" type="submit">Continue to checkout</button></div></form>`,

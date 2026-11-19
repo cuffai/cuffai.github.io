@@ -561,6 +561,12 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
   <p>The AI will edit your folder directly, without asking first. A restore point is saved before every change, so you can undo.</p>
   <div class="actions"><button class="btn" id="c5no">Cancel</button><button class="btn danger" id="c5yes">Allow changes</button></div>
 </dialog>
+<dialog id="subterms" aria-labelledby="stt">
+  <h2 id="stt">Subscribe to Cuff Pro</h2>
+  <p><b><span id="stprice">$15</span> a month, renewing automatically every month until you cancel.</b></p>
+  <p>Cancel any time from Manage plan here. Cancelling stops the next renewal, and you keep Pro until the end of the month you've paid for. Payment is handled by Stripe.</p>
+  <div class="actions"><button class="btn" id="stno">Not now</button><button class="btn go" id="styes">Continue to checkout</button></div>
+</dialog>
 <dialog id="signin" aria-labelledby="sititle">
   <button class="x" id="siclose" aria-label="Close">×</button>
   <div class="lockmark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
@@ -1204,10 +1210,24 @@ function renderAIBar() {
     $("planbtn").hidden = true; $("changekey").textContent = "Change";
   }
 }
-$("planbtn").onclick = () => busyBtn($("planbtn"), "Opening", async () => {
-  try { const r = await cuff({op: ME?.plan === "pro" ? "portal" : "checkout"}); location.href = r.url; }
-  catch (e) { toast(e.message, true); }
-});
+// renewal terms shown before anyone is sent to checkout
+function subTerms() {
+  return new Promise((done) => {
+    const dl = $("subterms"), price = STATUS?.plans?.pro_price;
+    if (price) $("stprice").textContent = "$" + price;
+    $("styes").onclick = () => { dl.close(); done(true); };
+    $("stno").onclick = () => { dl.close(); done(false); };
+    dl.oncancel = () => done(false);
+    dl.showModal();
+  });
+}
+$("planbtn").onclick = async () => {
+  if (ME?.plan !== "pro" && !(await subTerms())) return;
+  busyBtn($("planbtn"), "Opening", async () => {
+    try { const r = await cuff({op: ME?.plan === "pro" ? "portal" : "checkout"}); location.href = r.url; }
+    catch (e) { toast(e.message, true); }
+  });
+};
 async function upgrade() { $("planbtn").click(); }
 
 // came from the pricing page (?plan=pro) or the desktop app (?manage=1): sign in, then straight to Stripe;
@@ -1222,6 +1242,7 @@ async function followIntent() {
   }
   const want = INTENT; INTENT = null; store.set("cuffweb.intent", null);
   if (want === "pro" && ME.plan === "pro") { toast("You're already on Cuff Pro."); return true; }
+  if (want === "pro" && !(await subTerms())) return true;
   toast(want === "pro" ? "Opening secure checkout…" : "Opening your billing page…");
   try { const r = await cuff({op: ME.plan === "pro" ? "portal" : "checkout"}); location.href = r.url; return true; }
   catch (e) { toast(e.message, true); return false; }
