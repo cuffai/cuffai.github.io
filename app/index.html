@@ -449,6 +449,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 #diffdlg h2{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:16px;word-break:break-all}
 #diffdlg pre.diff{max-height:58vh}
 @media (max-width:980px){ .chatlog{max-height:none;margin:0 -18px;padding:4px 18px 8px} .lockhint{max-width:none} }
+#signin .legal{font-size:12.5px;color:var(--ink3,#6E7684);margin:12px 0 0;text-align:center;line-height:1.5}#signin .legal a{color:inherit}
 </style>
 </head>
 <body>
@@ -577,6 +578,7 @@ textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
     <input class="big" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com" required>
     <p class="keymsg" id="emailmsg" role="alert"></p>
     <button class="btn go wide" id="sendcode" type="submit">Email me a code</button>
+    <p class="legal">By continuing you confirm you're 18 or older and agree to the <a href="../terms.html" target="_blank" rel="noopener">Terms</a> and <a href="../privacy.html" target="_blank" rel="noopener">Privacy</a>.</p>
   </form>
   <form id="sicode" novalidate hidden>
     <h2>Check your email</h2>
