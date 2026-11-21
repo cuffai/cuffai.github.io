@@ -368,7 +368,7 @@ async function loadBilling() {
 
 // ---- features the free Starter plan doesn't include: grayed out, a tip under the cursor, a click opens Upgrade ------------------
 const LOCKS = [
-  ["#scanall, [data-scan], [data-act]", "Running the agent scan and acting on what it finds from the console come with Team."],
+  ["#scanall, #stopall, [data-scan], [data-act]", "Running the agent scan and acting on what it finds from the console come with Team."],
   ["#exjson, #excsv", "Exporting the audit log comes with Team."],
   ["#mfareq", "Requiring two-step sign-in for everyone comes with Team."],
   ["#invite", "The free Starter plan is for up to 3 people, counting open invitations.", () => BILL.seats_taken >= BILL.starter_people],
@@ -430,7 +430,7 @@ function upgrade() {
         <p>Console, signed policies, the company agent scan with remote stop, required two-step sign-in, audit export.</p>
         <span class="tot" data-y="${money(t.year * 12 * n)} a year for ${n}" data-m="${money(t.month * n)} a month for ${n}">${money(t.year * 12 * n)} a year for ${n}</span></div>
       <div class="plancard later"><b>Business</b><span class="amt" data-y="${money(b.year)}" data-m="${money(b.month)}">${money(b.year)}<small> /person/month</small></span>
-        <p>Approvals, live activity with a kill switch, and security alerts. Available to buy when they're released.</p></div>
+        <p>Approvals, live activity and security alerts. Available to buy when they're released.</p></div>
     </div>
     <p class="muted small" style="margin:6px 0 0"><b>Renewal:</b> your plan renews automatically each month or year, at the price per person shown, until you cancel under Billing. Cancelling stops the next renewal; you keep the plan to the end of the period you paid for. A company's first subscription starts with 7 days free, and the card is charged when the trial ends unless you cancel first. Adding or removing people adjusts the next invoice.</p>
     <p class="muted small" style="margin:6px 0 0">Over 100 people? Enterprise is priced on request. Payment is handled by Stripe; Cuff never sees card details.</p>
@@ -511,7 +511,7 @@ const table = (cols, rows, empty) => `<div class="tablewrap"><table><thead><tr>$
 // ---- sections that are not built yet: say what's coming, show nothing invented ------------------------------------------
 const LATER = {
   approvals: ["Human approvals arrive with the policy engine.", ["Rules that answer REQUIRE APPROVAL route the request here", "Approve or deny with a reason, with time limits and escalation", "Every decision written to the audit log"]],
-  activity: ["Live monitoring arrives in Phase 3.", ["A live stream of what agents do on each workstation, marked verified (reported and signed by the workstation) or estimated", "The kill switch, showing a command issued separately from a command the workstation confirmed it enforced", "Remote policy updates with delivery status per workstation"]],
+  activity: ["Live monitoring arrives in Phase 3.", ["A live stream of what agents do on each workstation, marked verified (reported and signed by the workstation) or estimated", "Until then, the kill switch is in the Security Center: “Stop every AI agent” stops every running agent the scan found, and each computer confirms it", "Remote policy updates with delivery status per workstation"]],
   models: ["Model management arrives in Phase 4.", ["An inventory of the AI models and providers your agents use", "Allow and block lists of models and providers, by team", "Where model credentials live, without ever showing a secret"]],
   usage: ["Usage and costs arrive in Phase 5.", ["Usage per agent, team and provider", "Costs shown as estimates, clearly labelled, unless a provider bill confirms them", "Budgets and alerts"]],
 };
@@ -726,7 +726,7 @@ async function agentDrawer(id) {
       <dt>Workstation</dt><dd>${esc(wsName(a.workstation_id))}</dd>
       ${a.local_key ? `<dt>Detected as</dt><dd class="mono">${esc(a.local_key)}</dd>` : ""}
       <dt>Last active</dt><dd>${esc(stamp(a.last_active))}</dd><dt>Registered</dt><dd>${esc(stamp(a.created_at))}</dd></dl>
-    ${["suspended", "disabled"].includes(a.status) ? `<div class="notice small"><b>What this does today:</b> the status is recorded, written to the audit log and sent to the workstation at its next check-in. Stopping the agent on the computer itself arrives with the kill switch in Phase 3, which will show whether each workstation confirmed it.</div>` : ""}
+    ${["suspended", "disabled"].includes(a.status) ? `<div class="notice small"><b>What this does today:</b> the status is recorded, written to the audit log and sent to the workstation at its next check-in. To stop a running agent on the computer itself, use the Security Center: stop it from its finding, or “Stop every AI agent” to stop all of them. Each computer confirms what it stopped.</div>` : ""}
     </div><div id="t2" role="tabpanel" hidden>
     ${a.history.length ? `<ul class="feed">${a.history.map((h) => `<li><span class="dot ${h.outcome}">${icon(h.action.includes("status") ? "pause" : "edit")}</span><span><b>${esc(actionText(h.action))}${h.details?.status ? ": " + esc(h.details.status) : ""}</b><span class="sub">${esc(h.actor_label || "")}${h.details?.reason ? ", " + esc(h.details.reason) : ""}</span></span><time title="${esc(stamp(h.ts))}">${esc(when(h.ts))}</time></li>`).join("")}</ul>` : emptyState("No history yet", "", "clock")}</div>`);
   tabs(d);
@@ -975,6 +975,7 @@ PAGES.security = async (main) => {
   if (!can("security.read")) { main.innerHTML = head("Security Center", "") + `<div class="notice">Your role doesn't include the Security Center. Super admins, administrators and security managers can see it.</div>`; return; }
   SEC = await cp("security_overview");
   const all = SEC.findings, open = all.filter((f) => f.state === "open");
+  const running = open.filter((f) => f.actions.includes("stop"));
   const n = (r) => open.filter((f) => f.risk === r).length;
   const scanned = SEC.workstations.filter((w) => w.scan_at).length;
   const last = SEC.workstations.map((w) => w.scan_at).filter(Boolean).sort().pop();
@@ -983,7 +984,8 @@ PAGES.security = async (main) => {
     && (!secFilter.ws || f.workstation_id === secFilter.ws)
     && (!q || `${f.title} ${f.detail} ${f.where} ${secWs(f.workstation_id)?.name || ""}`.toLowerCase().includes(q)));
   main.innerHTML = head("Security Center", "What Cuff's agent scan found on your company's computers: AI agents running outside Cuff, things that start them, AI keys left in files and hidden instructions.",
-    `<button class="btn" id="srefresh">${icon("refresh")}Refresh</button>` + (SEC.can_act && SEC.workstations.length ? `<button class="btn primary" id="scanall">${icon("search")}Scan every computer</button>` : "")) +
+    `<button class="btn" id="srefresh">${icon("refresh")}Refresh</button>` + (SEC.can_act && SEC.workstations.length ? `<button class="btn primary" id="scanall">${icon("search")}Scan every computer</button>` : "")
+    + (SEC.can_act && running.length ? `<button class="btn danger" id="stopall">${icon("pause")}Stop every AI agent (${running.length})</button>` : "")) +
     `<div class="stats" style="margin-bottom:14px">
       <section class="card stat"><div class="k">${icon("security")}Urgent</div><div class="v ${n("high") ? "badtext" : ""}">${n("high")}</div>
         <div class="n">${n("high") ? "Deal with these first" : "Nothing urgent right now"}</div></section>
@@ -1027,7 +1029,25 @@ PAGES.security = async (main) => {
   main.querySelectorAll("[data-scan]").forEach((b) => (b.onclick = () => scanOne(b.dataset.scan)));
   $("srefresh").onclick = () => PAGES.security(main).catch(fail);
   $("scanall") && ($("scanall").onclick = scanAll);
+  $("stopall") && ($("stopall").onclick = () => stopAll(running));
 };
+
+// The kill switch: one signed "stop" per running AI agent the scan found, sent to the computer it runs on. Each computer
+// stops it and confirms, and the confirmations show under "Requests to computers". It covers what the scan has found, so
+// an agent started since a computer's last scan isn't included: scan first when it matters.
+async function stopAll(running) {
+  if (!can("security.act") || !running.length) return;
+  const pcs = new Set(running.map((f) => f.workstation_id)).size;
+  if (!await confirmBox("Stop every AI agent", `Cuff asks ${pcs} computer${pcs === 1 ? "" : "s"} to stop <b>${running.length}</b> running AI agent${running.length === 1 ? "" : "s"} the scan found. Each computer stops them when it next checks in (about a minute if it's on) and confirms here. The people using them will see that you asked.<br><br>This covers agents found by the latest scans. Anything started since won't be included until it's found, so scan every computer afterwards to check.`, "Stop them all")) return;
+  let sent = 0; const failed = [];
+  for (const f of running) {
+    try { await cp("scan_command", { action: "stop", workstation_id: f.workstation_id, finding: f.id }); sent++; }
+    catch (e) { failed.push(`${f.title} (${secWs(f.workstation_id)?.name || "computer"}): ${e.message || e}`); }
+  }
+  if (failed.length) toast(`Sent ${sent} of ${running.length}. Didn't send: ${failed.slice(0, 3).join("; ")}${failed.length > 3 ? "…" : ""}`, "bad");
+  else toast(`Sent ${sent} stop request${sent === 1 ? "" : "s"}. Each computer confirms under “Requests to computers”.`);
+  PAGES.security($("main")).catch(fail);
+}
 
 async function scanAll() {
   if (!can("security.act")) return;
@@ -1171,7 +1191,7 @@ function planCard() {
       <dt>Team, if paid now</dt><dd>$${t.year * n}/month billed yearly ($${t.year} × ${n}), or $${t.month * n} month to month</dd></dl>
     ${BILL.can_manage ? `<button class="btn primary" id="upgradebill">Upgrade</button>${BILL.has_billing_account ? ` <button class="btn" id="managebill">Billing history</button>` : ""}`
       : `<p class="muted small" style="margin:0">Your super admin can upgrade the organisation.</p>`}
-    <p class="muted small" style="margin:10px 0 0">Business ($19 per person per month) adds approvals, live activity with a kill switch, and security alerts as they are released. Enterprise is priced on request from 100 people.
+    <p class="muted small" style="margin:10px 0 0">Business ($19 per person per month) adds approvals, live activity and security alerts as they are released. Enterprise is priced on request from 100 people.
       <a href="../pricing.html?for=companies" target="_blank" rel="noopener">See pricing</a></p>`;
 }
 
