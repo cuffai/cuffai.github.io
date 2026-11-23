@@ -574,7 +574,17 @@ document.addEventListener("keydown", (e) => {
 
 // ---- Overview ----------------------------------------------------------------------------------------------------------
 PAGES.overview = async (main) => {
-  const [o, pol, agents] = await Promise.all([cp("overview"), cp("policy_list"), cp("agents_list")]);
+  const [o, pol, agents, wsAll] = await Promise.all([cp("overview"), cp("policy_list"), cp("agents_list"),
+    cp("workstations_list").catch(() => [])]);
+  // Computers that used to check in and have gone quiet. A computer that is off or offline looks the same as one where Cuff was
+  // stopped, so this names them and says both; the ones that went quiet in the last day come first, since that is the fresh signal.
+  const quiet = wsAll.filter((w) => w.status === "active" && w.last_seen && !w.connected)
+    .sort((a, b) => String(b.last_seen).localeCompare(String(a.last_seen)));
+  const fresh = quiet.filter((w) => Date.now() - Date.parse(w.last_seen) < 864e5).length;
+  const quietNote = quiet.length ? `<div class="notice warn" role="status" style="margin-bottom:16px"><b>${quiet.length} computer${quiet.length === 1 ? " has" : "s have"} stopped checking in</b>${fresh ? ` (${fresh} in the last 24 hours)` : ""}.
+      This usually means ${quiet.length === 1 ? "it is" : "they are"} switched off or offline, but it is also what you would see if someone stopped Cuff on ${quiet.length === 1 ? "it" : "them"}, so check with the people using ${quiet.length === 1 ? "it" : "them"}.
+      <ul>${quiet.slice(0, 5).map((w) => `<li><b>${esc(w.name)}</b> (${esc(person(w.employee_id))}), last check-in ${esc(when(w.last_seen))}</li>`).join("")}</ul>
+      ${quiet.length > 5 ? `<p class="small" style="margin:6px 0 0">And ${quiet.length - 5} more.</p>` : ""}<p class="small" style="margin:8px 0 0"><a href="#/workstations">Open Workstations</a></p></div>` : "";
   const cur = pol.versions[0], cap = cur && "max_level" in (cur.rules || {}) ? cur.rules.max_level : null;
   const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
   // the agents' states, as one stacked bar: counted from the registry, nothing estimated
@@ -586,7 +596,7 @@ PAGES.overview = async (main) => {
   const maxP = Math.max(1, ...providers.map((p) => p[1]));
   const ACT_ICON = { agent: "agents", workstation: "workstations", device: "workstations", member: "people", policy: "policies", org: "building",
     department: "team", team: "team", enrollment_code: "key", scan: "security" };
-  main.innerHTML = head("Overview", `${esc(ORG.name)}, where every AI agent your organisation knows about stands right now.`) +
+  main.innerHTML = head("Overview", `${esc(ORG.name)}, where every AI agent your organisation knows about stands right now.`) + quietNote +
     `<div class="hero">
       <section class="card dialcard" aria-label="Company dial">
         <h2 class="ch">Company dial<span class="right"><a href="#/policies">${cur ? "Policy version " + cur.version : "Set a policy"}</a></span></h2>

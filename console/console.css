@@ -179,6 +179,7 @@ nav .soon{margin-left:auto;flex:none;font-size:11px;color:var(--ink3);background
 .notice{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-card);padding:18px 20px;color:var(--ink2);max-width:76ch;box-shadow:var(--shadow)}
 .notice b{color:var(--ink)}
 .notice ul{margin:8px 0 0;padding-left:18px}
+.notice.warn{border-left:4px solid var(--warn)}
 .notice.small{padding:12px 14px;box-shadow:none;background:var(--surface2)}
 
 /* overview: the dial */
