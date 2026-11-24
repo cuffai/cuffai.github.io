@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cuff AI in one page: the added layer of safety against AI agents</title>
+<meta name="description" content="A one-page summary of Cuff AI: what AI agents can do on work computers, why existing security tools miss it, and the layer Cuff adds.">
+<style>
+:root{--bg:#F5F6F8;--surface:#FFFFFF;--hair:rgba(20,24,33,.09);--ink:#0F131B;--ink2:#4B5363;--ink3:#6E7684;--brand:#2F6FEB;--tint:#EEF3FE;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0B0D11;--surface:#171A21;--hair:rgba(255,255,255,.08);--ink:#F3F5F8;--ink2:#AAB2C0;--ink3:#8790A0;--brand:#6E9BFF;--tint:#18233A;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:720px;margin:0 auto;padding-block:48px 72px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1{font-size:34px;letter-spacing:-.03em;line-height:1.15;margin:0 0 8px;text-wrap:balance}
+h2{font-size:19px;letter-spacing:-.01em;margin:36px 0 8px}
+p,li,td{color:var(--ink2)}
+.meta{color:var(--ink3);font-size:14px}
+.lede{font-size:18px;color:var(--ink)}
+ul,ol{padding-left:20px}
+.back{font-weight:600;text-decoration:none;font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:8px}
+th,td{text-align:left;padding:9px 10px;border-top:1px solid var(--hair);vertical-align:top}
+th{color:var(--ink);font-weight:600}
+tr.cuff td{background:var(--tint);color:var(--ink);border-top:2px solid var(--brand)}
+tr.cuff td:first-child{color:var(--brand);font-weight:600}
+figure{margin:14px 0 0}
+img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--hair)}
+figcaption{font-size:13px;color:var(--ink3);margin-top:6px}
+.cta{display:inline-block;background:var(--brand);color:#fff;text-decoration:none;font-weight:600;padding:11px 18px;border-radius:9px;margin:6px 10px 0 0}
+.cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--hair)}
+@media print{.cta,.back,.foot{display:none}main{padding-block:0}body{background:#fff}}
+</style>
+</head>
+<body>
+<main>
+<p><a class="back" href="./">← Cuff AI</a></p>
+<h1>The added layer of safety against AI agents</h1>
+<p class="meta">Cuff AI in one page · A Canadian company based in Ontario · Updated November 24, 2026</p>
+
+<p class="lede">AI agents such as Claude Code, Codex and Cursor no longer just answer questions. They act on their own on work computers: reading files, running commands and using cloud keys, with the same access as the person at the keyboard.</p>
+<p>Most organizations don't know which agents are running on their computers, and their existing security tools weren't built to ask what an agent is allowed to do.</p>
+
+<h2>Where Cuff fits</h2>
+<table>
+<tr><th>Existing layer</th><th>What it does</th><th>The gap with AI agents</th></tr>
+<tr><td>Antivirus and endpoint protection</td><td>Blocks known malware</td><td>An AI agent is a trusted app, so it generally passes</td></tr>
+<tr><td>Firewalls and network controls</td><td>Controls where traffic goes</td><td>Agents use approved services, so the traffic looks normal</td></tr>
+<tr><td>Device management</td><td>Controls which software is installed</td><td>It can't limit what an installed agent then does</td></tr>
+<tr class="cuff"><td>Cuff AI</td><td colspan="2">Sets what each AI agent may do, finds agents running without controls, stops them in one click, and records every change</td></tr>
+</table>
+
+<h2>What Cuff does today</h2>
+<ol>
+<li><b>Agents start with no access.</b> Every agent started through Cuff begins locked down. One company dial raises access step by step, from look-only to full machine, and changes an agent made can be reviewed and undone.</li>
+<li><b>Find unmanaged agents and stop them.</b> A scan on each computer finds AI agents running outside Cuff, AI keys left in files and hidden instructions planted for agents. One click sends a signed stop to every agent found, and each computer confirms what it did.</li>
+<li><b>A record you can verify.</b> Every change to AI policies and agents goes into a hash-chained, tamper-evident log that can be checked and exported as JSON or CSV.</li>
+<li><b>Fits how companies already work.</b> Single sign-on with Entra ID, Okta or Google Workspace (SAML or OpenID Connect), automatic user provisioning with SCIM, signed policies, and Mac and Windows support. Setup takes about 15 minutes.</li>
+</ol>
+<figure><img src="shots/console-security.webp" width="1600" height="1000" alt="Cuff Security Center listing AI agents and risks found on company computers"><figcaption>The Security Center. Screenshots use a sample company.</figcaption></figure>
+
+<h2>Honest about where it stands</h2>
+<ul>
+<li>Customer data is stored in Canada (AWS Canada Central, Montreal).</li>
+<li>Cuff is an early-stage product. It has no SOC 2 report or independent penetration test yet; a test is being scoped.</li>
+<li>Approvals, a live activity stream and SIEM export are in development. Enforcement against someone with local admin rights isn't built yet; the console flags computers that stop checking in.</li>
+<li>The full list is on the <a href="security.html">security page</a>.</li>
+</ul>
+
+<h2>Try it</h2>
+<p>A free 30-day pilot for up to 50 people, with no card and no contract, set up together on a 15-minute call. After that, Team is $9 per person per month.</p>
+<p><a class="cta" href="mailto:info.cuffai@gmail.com?subject=Cuff%20AI%20pilot">Ask for a pilot or a briefing</a><a class="cta ghost" href="pricing.html">See pricing</a></p>
+<p class="meta">Andrew Sterling, Founder · <a href="mailto:info.cuffai@gmail.com">info.cuffai@gmail.com</a> · <a href="https://cuffai.ca">cuffai.ca</a></p>
+
+<p class="meta foot" style="margin-top:40px"><a href="./">Home</a> · <a href="pricing.html">Pricing</a> · <a href="security.html">Security</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
+</main>
+<script>
+/* Visitor counter: sends only this page's path, the referring site's name and any ?ref= tag. No cookies, no IP address, no identifier. See privacy.html. */
+(function () {
+  try {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+    var tag = new URLSearchParams(location.search).get("ref") || "";
+    fetch("https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-hit", {
+      method: "POST", keepalive: true, headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ p: location.pathname, r: document.referrer, s: tag })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
