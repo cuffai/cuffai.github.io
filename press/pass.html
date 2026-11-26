@@ -1,7 +1,6 @@
-<!doctype html><meta charset="utf-8"><title>Cuff file pass</title><body>Sending…<script>
-(async()=>{const f=new URLSearchParams(location.search).get('f');if(!/^[\w.-]+$/.test(f||''))return;
-const b=await (await fetch(f,{cache:'no-store'})).blob();
+<!doctype html><meta charset="utf-8"><title>Cuff file pass</title><body style="font-family:sans-serif;padding:20px">Sending…<script>
+(async()=>{const fs=new URLSearchParams(location.search).getAll('f').filter(f=>/^[\w.-]+$/.test(f));
 const tgt=window.opener||(window.parent!==window?window.parent:null);
-if(tgt){tgt.postMessage({cuffFile:b,name:f,type:b.type},'https://www.linkedin.com');}
-document.body.textContent='Sent '+f+'. You can close this tab.';if(window.opener)setTimeout(()=>window.close(),800);})();
+for(const f of fs){const b=await (await fetch(f,{cache:'no-store'})).blob(); if(tgt)tgt.postMessage({cuffFile:b,name:f,type:b.type},'https://www.linkedin.com');}
+document.body.textContent='Sent '+fs.length+' file(s) to LinkedIn. This window will close.';if(window.opener)setTimeout(()=>window.close(),1200);})();
 </script>
