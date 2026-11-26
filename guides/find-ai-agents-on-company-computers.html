@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to find the AI agents running on your company's computers | Cuff AI</title>
+<meta name="description" content="A practical guide for IT teams: where AI coding agents and assistants show up on Windows and Mac computers, how to check for them by hand, and what to do once you have a list.">
+<link rel="icon" href="../icon-192.png">
+<link rel="canonical" href="https://cuffai.ca/guides/find-ai-agents-on-company-computers.html">
+<meta property="og:title" content="How to find the AI agents running on your company's computers">
+<meta property="og:description" content="Where AI agents show up on Windows and Mac computers, how to check by hand, and what to do once you have a list.">
+<meta property="og:image" content="https://cuffai.ca/press/cuff-linkedin-post-antivirus.png">
+<style>
+:root{--bg:#F5F6F8;--surface:#FFFFFF;--hair:rgba(20,24,33,.09);--ink:#0F131B;--ink2:#4B5363;--ink3:#6E7684;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0B0D11;--surface:#171A21;--hair:rgba(255,255,255,.08);--ink:#F3F5F8;--ink2:#AAB2C0;--ink3:#8790A0;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:680px;margin:0 auto;padding-block:48px 72px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1{font-size:34px;letter-spacing:-.03em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:19px;letter-spacing:-.01em;margin:36px 0 8px}
+p,li,td{color:var(--ink2)}
+.meta{color:var(--ink3);font-size:14px}
+ul{padding-left:20px}
+.back{font-weight:600;text-decoration:none;font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:8px}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--hair);vertical-align:top}
+th{color:var(--ink);font-weight:600}
+code{font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<p><a class="back" href="../">← Cuff AI</a></p>
+<h1>How to find the AI agents running on your company's computers</h1>
+<p class="meta">A practical guide for IT teams. By Andrew Sterling, Founder, Cuff AI · November 26, 2026</p>
+
+<p>A year ago, "AI at work" mostly meant a chat window in a browser. Now it often means an agent: a program that can read files, run commands, edit code and call other services on a person's computer. Tools like Claude Code, OpenAI Codex, Cursor, Gemini CLI and GitHub Copilot's agent features fall in this group, and staff often install them on their own because they are useful.</p>
+<p>That is not a bad thing. But it means many IT teams can no longer answer a basic question: which AI agents are running on our computers, and what are they allowed to do? This guide covers how to answer it, starting with what you can do today with no new tools.</p>
+
+<h2>Why it matters now</h2>
+<p>Agents act with the permissions of the person who runs them. If a developer can read a folder, push code or reach a cloud account, an agent running on their laptop usually can too.</p>
+<p>The tools themselves also have bugs, like any software. In October, researchers <a href="https://www.theregister.com/2026/10/29/researchers-find-bugs-in-5-ai-developer-tools-with-openai-and-microsoft-flaws-still-unpatched/5306508">reported security flaws in the built-in browsers of five popular AI developer tools</a>, and some were still unpatched when the news came out. When that happens, the first thing you need is a list of who has the affected tool installed, and which version. Without that list, you are guessing.</p>
+<p>Canada's Cyber Centre made a related point in its <a href="https://www.cyber.gc.ca/en/guidance/cyber-threat-bulletin-agentic-artificial-intelligence-accelerating-cyber-attacks">October bulletin on agentic AI</a>: the basics still apply. Know what you have, limit what it can reach, keep logs, and decide in advance who can shut something down.</p>
+
+<h2>Where to look on each computer</h2>
+<p>There is no single setting that lists every agent, so you have to check a few places. On a small number of machines you can do this by hand.</p>
+<ul>
+<li><b>Installed applications.</b> Look for desktop apps such as Cursor, Claude Desktop, ChatGPT Desktop and Windsurf in the Applications folder on Mac or in installed programs on Windows.</li>
+<li><b>Command-line tools.</b> Many agents are installed as terminal commands, often through npm, pip or Homebrew. Running <code>npm list -g --depth=0</code> and <code>brew list</code> shows globally installed packages. Look for packages such as <code>@anthropic-ai/claude-code</code>, <code>@openai/codex</code> and <code>@google/gemini-cli</code>, and for commands such as <code>claude</code>, <code>codex</code>, <code>gemini</code>, <code>aider</code> or <code>goose</code>.</li>
+<li><b>Editor extensions.</b> VS Code and its forks support AI extensions. Run <code>code --list-extensions</code> or look in the extensions folder in the user's home directory.</li>
+<li><b>Configuration files.</b> Agents keep settings in hidden files and folders in the user's home directory (on Windows, <code>C:\Users\&lt;name&gt;</code>), such as <code>.claude</code> and <code>.claude.json</code>, <code>.codex</code>, <code>.cursor</code>, <code>.gemini</code>, or <code>.codeium/windsurf</code>. One of these is a strong sign the tool has been used, even if it is not running right now. Many also list the extra tools (MCP servers) the agent is allowed to call, which is worth reading.</li>
+<li><b>Running processes.</b> Activity Monitor on Mac or Task Manager on Windows will show agents that are running at the moment. This misses tools that are installed but idle.</li>
+</ul>
+<p>Write down what you find for each machine: the tool, its version, and who uses it. Version matters, because security fixes come in updates.</p>
+
+<h2>Why doing this by hand does not scale</h2>
+<p>The manual approach works for five or ten computers. Past that, it breaks down quickly.</p>
+<p>New tools appear every few months, and existing ones change names, install paths and config folders. A check you script today may miss next quarter's tool. People install and remove things between your checks. And a list tells you what exists, but it does not let you do anything about it. If a serious bug is announced on a Friday afternoon, a spreadsheet will not stop the affected agent on forty laptops.</p>
+<p>Your existing tools help some. Device management and endpoint software can often report installed applications, and they are worth using. But most were not built to recognize AI agents specifically, and command-line tools installed in a user's home folder are easy to miss.</p>
+
+<h2>What to do once you have a list</h2>
+<ol>
+<li><b>Decide on a policy.</b> Which tools are approved? What should agents be allowed to do: read only, edit files, run commands? Write it down in one place and apply it to everyone, rather than leaving each person to configure their own tool.</li>
+<li><b>Make sure you can stop them.</b> Know how you would shut down a given agent across the company if you had to, and who is allowed to make that call.</li>
+<li><b>Keep a record.</b> When you change a policy or stop an agent, log it. If an auditor, client or insurer asks later, you want a record that shows whether it has been edited after the fact.</li>
+<li><b>Repeat.</b> Treat this as an ongoing check, not a one-time project.</li>
+</ol>
+
+<h2>Where Cuff AI fits</h2>
+<p>Cuff AI is built for exactly this problem. It is a desktop app and a web console for Mac and Windows. The app's agent scan looks for AI agents on each computer: command-line agents such as Claude Code, Codex and Gemini CLI, programs talking to AI services, agents set to start by themselves, and the tools wired into apps like Claude Desktop, Cursor, VS Code and Windsurf. From the console, IT sets one company-wide dial for what agents may do, can stop every agent the scan found with one click, and gets a tamper-evident audit log of those actions.</p>
+<p>It does not replace your endpoint security or device management. It adds a layer focused on AI agents, and it works with any agent vendor. If you want to try it on your own computers, the pilot is free for 30 days for up to 50 people, with no card. After that it is $9 per person per month.</p>
+<p><a class="back" href="mailto:info.cuffai@gmail.com?subject=Cuff%20AI%20pilot">Ask for a free 30-day pilot →</a></p>
+
+<p class="meta" style="margin-top:40px"><a href="../">Home</a> · <a href="../pricing.html">Pricing</a> · <a href="../security.html">Security</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></p>
+</main>
+<script>
+/* Visitor counter: sends only this page's path, the referring site's name and any ?ref= tag. No cookies, no IP address, no identifier. See privacy.html. */
+(function () {
+  try {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+    var tag = new URLSearchParams(location.search).get("ref") || "";
+    fetch("https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-hit", {
+      method: "POST", keepalive: true, headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ p: location.pathname, r: document.referrer, s: tag })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
