@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>Cuff file pass</title><body>Sending…<script>
+(async()=>{const f=new URLSearchParams(location.search).get('f');if(!/^[\w.-]+$/.test(f||''))return;
+const b=await (await fetch(f,{cache:'no-store'})).blob();
+const tgt=window.opener||(window.parent!==window?window.parent:null);
+if(tgt){tgt.postMessage({cuffFile:b,name:f,type:b.type},'https://www.linkedin.com');}
+document.body.textContent='Sent '+f+'. You can close this tab.';if(window.opener)setTimeout(()=>window.close(),800);})();
+</script>
