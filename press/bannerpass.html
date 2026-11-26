@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Cuff banner</title><body>Sending banner…<script>
 (async()=>{const b=await (await fetch('linkedin-banner-1584x396.png',{cache:'no-store'})).blob();
 const d=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
-if(window.opener){window.opener.postMessage({cuffBanner:d},'https://www.linkedin.com');document.body.textContent='Sent. You can close this tab.';setTimeout(()=>window.close(),800);}})();
+const tgt=window.opener||(window.parent!==window?window.parent:null);if(tgt){tgt.postMessage({cuffBanner:d},'https://www.linkedin.com');}if(window.opener){document.body.textContent='Sent. You can close this tab.';setTimeout(()=>window.close(),800);}})();
 </script>
