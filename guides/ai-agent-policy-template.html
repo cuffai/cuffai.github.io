@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A one-page AI agent policy for your company (free template) | Cuff AI</title>
+<meta name="description" content="A short, plain-language template IT teams can adapt to set rules for AI agents like Claude Code, Codex and Cursor on company computers.">
+<link rel="icon" href="../icon-192.png">
+<link rel="canonical" href="https://cuffai.ca/guides/ai-agent-policy-template.html">
+<meta property="og:title" content="A one-page AI agent policy for your company">
+<meta property="og:description" content="A plain-language template for setting rules for AI agents on company computers.">
+<meta property="og:image" content="https://cuffai.ca/press/cuff-linkedin-post-antivirus.png">
+<style>
+:root{--bg:#F5F6F8;--surface:#FFFFFF;--hair:rgba(20,24,33,.09);--ink:#0F131B;--ink2:#4B5363;--ink3:#6E7684;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0B0D11;--surface:#171A21;--hair:rgba(255,255,255,.08);--ink:#F3F5F8;--ink2:#AAB2C0;--ink3:#8790A0;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:680px;margin:0 auto;padding-block:48px 72px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1{font-size:34px;letter-spacing:-.03em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:19px;letter-spacing:-.01em;margin:36px 0 8px}
+p,li,td{color:var(--ink2)}
+.meta{color:var(--ink3);font-size:14px}
+ul{padding-left:20px}
+.back{font-weight:600;text-decoration:none;font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:8px}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--hair);vertical-align:top}
+th{color:var(--ink);font-weight:600}
+code{font-size:14px}
+pre{white-space:pre-wrap;background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:18px 20px;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+<p><a class="back" href="../">← Cuff AI</a></p>
+<h1>A one-page AI agent policy for your company</h1>
+<p class="meta">A free template for IT teams. By Andrew Sterling, Founder, Cuff AI · November 27, 2026</p>
+
+<p>Most companies now have a policy for AI chat tools: don't paste client data into a public chatbot. Far fewer have one for AI agents, the tools that can read files, run commands and change code on a work computer. Claude Code, OpenAI Codex, Cursor and Gemini CLI are examples, and staff often install them on their own.</p>
+<p>An agent policy doesn't need to be long. It needs to answer five questions that people will otherwise answer differently on every laptop. Below is a one-page template you can copy, adapt and send round this week. It is a starting point, not legal advice: adjust it to your own risks, contracts and rules.</p>
+
+<h2>The five questions a policy has to answer</h2>
+<ol>
+<li><b>Which agents are allowed?</b> A short approved list beats a long banned list. New tools appear every month.</li>
+<li><b>What may they do?</b> Reading code is not the same as running commands or reaching the internet. Say where the line is.</li>
+<li><b>What must they never touch?</b> Client files, production systems, password stores and payroll are common answers.</li>
+<li><b>Who can stop them, and how fast?</b> When a tool has a serious bug, someone needs the authority and the means to turn it off.</li>
+<li><b>What gets recorded?</b> If a client, auditor or insurer asks what changed, you want a record nobody has quietly edited.</li>
+</ol>
+
+<h2>The template</h2>
+<p>Replace the parts in square brackets.</p>
+<pre>[Company] AI agent policy
+Owner: [name, role]   Last reviewed: [date]   Next review: [date + 6 months]
+
+1. Scope
+This policy covers AI agents: software that can read files, run commands, edit code or act in other systems on a company computer. Examples: Claude Code, OpenAI Codex, Cursor, Gemini CLI, GitHub Copilot's agent features. It does not cover chat-only tools, which [chat policy name] covers.
+
+2. Approved agents
+Only these agents may be used on company computers: [list, with the team allowed to use each].
+To ask for another, email [IT contact] with the tool's name, what you want it for and who would use it. IT aims to answer within [5] business days.
+
+3. What agents may do
+By default, agents may read and suggest changes to files in the project folder you are working in. Edits are reviewed by you before they are kept.
+Running commands, installing software or reaching the internet is allowed only for [teams/roles], in [named projects or folders].
+Agents may never be given more access than the person running them has.
+
+4. What agents must never touch
+- Client or member files outside the project you are working on
+- Production systems and production credentials
+- Password managers, SSH keys and cloud keys, except through [approved method]
+- [Payroll, HR, legal hold or other sensitive systems]
+Never paste or store keys, passwords or client data in an agent's settings or instructions files.
+
+5. Stopping an agent
+[IT lead] and [backup] may stop or remove any agent on any company computer, at any time, without notice, when they believe it is needed to protect the company or its clients. Staff must report anything an agent did that they didn't expect to [IT contact] the same day.
+
+6. Records
+IT keeps a list of which approved agents are on which computers and what each is allowed to do. Changes to this policy, to an agent's access, and any time an agent is stopped are logged, with who did it and when. Logs are kept for [12 months / your retention period].
+
+7. Updates
+Agents must be kept on a supported version. When a security fix is announced for an approved agent, it must be updated within [3] business days, or stopped until it is.
+
+8. Questions and exceptions
+Exceptions need written approval from [role]. Questions go to [IT contact].</pre>
+
+<h2>Making it stick</h2>
+<ul>
+<li><b>Start strict, then loosen.</b> Read-only plus reviewed edits covers a lot of real work. Widen access for the teams that ask, with a reason.</li>
+<li><b>Write it for the people using the tools.</b> If developers think the policy is unworkable, they will route around it. Ask two of them to read the draft before you send it.</li>
+<li><b>Know what is installed before you enforce anything.</b> A policy for tools you can't see is a wish. Our guide on <a href="find-ai-agents-on-company-computers.html">how to find the AI agents on your company's computers</a> covers how to check.</li>
+<li><b>Review it twice a year.</b> The tools change faster than most policies do.</li>
+</ul>
+
+<h2>Where Cuff AI fits</h2>
+<p>A written policy says what should happen. Cuff AI helps make it happen on each computer. Its agent scan finds the AI agents on Mac and Windows computers. One company-wide dial sets what agents started through Cuff may do, in seven steps from no access to full machine, with read-only and "edits go to a staging copy until you approve" in between. From the console you can stop every agent the scan found with one click, and every change goes into a tamper-evident, hash-chained audit log. That covers sections 3, 5 and 6 of the template.</p>
+<p>Cuff doesn't replace your endpoint security or device management, and it works with any agent vendor. The pilot is free for 30 days for up to 50 people, with no card. After that it is $9 per person per month.</p>
+<p><a class="back" href="mailto:info.cuffai@gmail.com?subject=Cuff%20AI%20pilot">Ask for a free 30-day pilot →</a></p>
+
+<p class="meta" style="margin-top:40px"><a href="../">Home</a> · <a href="find-ai-agents-on-company-computers.html">Guide: find the AI agents on your computers</a> · <a href="../pricing.html">Pricing</a> · <a href="../security.html">Security</a> · <a href="../privacy.html">Privacy</a></p>
+</main>
+<script>
+/* Visitor counter: sends only this page's path, the referring site's name and any ?ref= tag. No cookies, no IP address, no identifier. See privacy.html. */
+(function () {
+  try {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+    var tag = new URLSearchParams(location.search).get("ref") || "";
+    fetch("https://unehdhdrbhkkvoripxat.supabase.co/functions/v1/cuff-hit", {
+      method: "POST", keepalive: true, headers: { "content-type": "text/plain" },
+      body: JSON.stringify({ p: location.pathname, r: document.referrer, s: tag })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
